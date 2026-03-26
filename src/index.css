@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+/* PP Kyoto font for headings */
+@font-face {
+  font-family: 'PP Kyoto';
+  src: url('/fonts/PPKyoto-Thin.otf') format('opentype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Kyoto';
+  src: url('/fonts/PPKyoto-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Kyoto';
+  src: url('/fonts/PPKyoto-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Kyoto';
+  src: url('/fonts/PPKyoto-Extrabold.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'PP Kyoto', 'Georgia', serif;
+
+  /* Brand palette */
+  --color-brand-50: #FFF8F0;
+  --color-brand-100: #FEEFD6;
+  --color-brand-200: #FDDCA8;
+  --color-brand-300: #FCC576;
+  --color-brand-400: #F5A623;
+  --color-brand-500: #D4891A;
+  --color-brand-600: #B06E14;
+  --color-brand-700: #8C5510;
+  --color-brand-800: #6B3F0D;
+  --color-brand-900: #4A2B09;
+  --color-brand-950: #2D1A05;
+
+  /* Neutral / Gray */
+  --color-gray-50: #FAF9F7;
+  --color-gray-100: #F5F3F0;
+  --color-gray-200: #E8E4DF;
+  --color-gray-300: #D4CFC8;
+  --color-gray-400: #A8A29E;
+  --color-gray-500: #78716C;
+  --color-gray-600: #57534E;
+  --color-gray-700: #44403C;
+  --color-gray-800: #292524;
+  --color-gray-900: #1C1917;
+  --color-gray-950: #0C0A09;
+
+  /* Surfaces */
+  --color-surface-cream: #FDFBF7;
+  --color-surface-warm: #FAF6EF;
+  --color-surface-sand: #F5EDE0;
+  --color-surface-linen: #EDE5D8;
+  --color-surface-muted: #E0D5C6;
+
+  /* Semantic dark theme tokens */
+  --color-bg: #0C0A09;
+  --color-bg-sidebar: #1C1917;
+  --color-bg-card: #292524;
+  --color-bg-elevated: #44403C;
+  --color-bg-hover: #57534E;
+
+  --color-border: #44403C;
+  --color-border-subtle: #292524;
+
+  --color-text: #FAF9F7;
+  --color-text-secondary: #A8A29E;
+  --color-text-muted: #78716C;
+
+  --color-accent: #F5A623;
+  --color-accent-hover: #FCC576;
+
+  /* Status */
+  --color-status-green: #22C55E;
+  --color-status-orange: #F59E0B;
+  --color-status-red: #EF4444;
+  --color-status-blue: #3B82F6;
+
+  --color-badge-published: #16A34A;
+  --color-badge-draft: #78716C;
+
+  /* Accent (purple) for special highlights */
+  --color-accent-purple: #D946EF;
+
+  /* Info blue */
+  --color-info: #3B82F6;
+
+  /* Shadows */
+  --shadow-sm: 0px 1px 2px 0px rgba(0,0,0,0.05);
+  --shadow-md: 0px 2px 4px -1px rgba(0,0,0,0.06);
+  --shadow-lg: 0px 4px 8px -2px rgba(0,0,0,0.08);
+  --shadow-xl: 0px 8px 16px -4px rgba(0,0,0,0.1);
+  --shadow-2xl: 0px 12px 24px -6px rgba(0,0,0,0.12);
+
+  /* Border radii */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-3xl: 28px;
+  --radius-full: 9999px;
+}
+
+html {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Light mode overrides */
+html.light {
+  --color-bg: #FDFBF7;
+  --color-bg-sidebar: #FAF6EF;
+  --color-bg-card: #FFFFFF;
+  --color-bg-elevated: #F5EDE0;
+  --color-bg-hover: #EDE5D8;
+  --color-border: #E8E4DF;
+  --color-border-subtle: #F5F3F0;
+  --color-text: #1C1917;
+  --color-text-secondary: #57534E;
+  --color-text-muted: #A8A29E;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+
+::selection { background: rgba(245, 166, 35, 0.3); }
+
+/* Heading utility */
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+/* Content editable focus */
+.content-editable:focus { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 4px; }
+
+/* Fade-up animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up { animation: fadeUp 0.5s ease-out forwards; }
+.animate-fade-up-1 { animation: fadeUp 0.5s ease-out 0.05s forwards; opacity: 0; }
+.animate-fade-up-2 { animation: fadeUp 0.5s ease-out 0.1s forwards; opacity: 0; }
+.animate-fade-up-3 { animation: fadeUp 0.5s ease-out 0.15s forwards; opacity: 0; }
+.animate-fade-up-4 { animation: fadeUp 0.5s ease-out 0.2s forwards; opacity: 0; }
+.animate-fade-up-5 { animation: fadeUp 0.5s ease-out 0.25s forwards; opacity: 0; }
