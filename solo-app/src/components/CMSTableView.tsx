@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -23,6 +23,8 @@ interface CMSTableViewProps {
   contentTypes: ContentType[];
   activeType: ContentType;
   onTypeChange: (ct: ContentType) => void;
+  onItemsChange?: (typeId: string, items: ContentItem[]) => void;
+  initialEditItemId?: string | null;
 }
 
 /* Map content-type icon strings (from sample data) to lucide components */
@@ -104,6 +106,8 @@ export default function CMSTableView({
   contentTypes,
   activeType,
   onTypeChange,
+  onItemsChange,
+  initialEditItemId,
 }: CMSTableViewProps) {
   const [search, setSearch] = useState('');
   const [localItems, setLocalItems] = useState<Record<string, ContentItem[]>>({});
@@ -115,6 +119,16 @@ export default function CMSTableView({
   const [newFieldName, setNewFieldName] = useState('');
   const [newFieldType, setNewFieldType] = useState<ContentFieldType>('text');
   const [newFieldRequired, setNewFieldRequired] = useState(false);
+
+  // Auto-open item editor when navigated from preview
+  useEffect(() => {
+    if (initialEditItemId) {
+      const item = (localItems[activeType.id] ?? activeType.items).find(
+        (i) => i.id === initialEditItemId,
+      );
+      if (item) openEditor(item);
+    }
+  }, [initialEditItemId, activeType.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Get items/fields with local overrides
   const currentItems = localItems[activeType.id] ?? activeType.items;
@@ -140,6 +154,11 @@ export default function CMSTableView({
     setEditFormData({});
   }
 
+  function updateItems(updated: ContentItem[]) {
+    setLocalItems((prev) => ({ ...prev, [activeType.id]: updated }));
+    onItemsChange?.(activeType.id, updated);
+  }
+
   function handleAddNew() {
     const now = new Date().toISOString();
     const newItem: ContentItem = {
@@ -149,8 +168,7 @@ export default function CMSTableView({
       createdAt: now,
       updatedAt: now,
     };
-    const updated = [...currentItems, newItem];
-    setLocalItems((prev) => ({ ...prev, [activeType.id]: updated }));
+    updateItems([...currentItems, newItem]);
     openEditor(newItem);
   }
 
@@ -166,14 +184,13 @@ export default function CMSTableView({
     const updatedItems = currentItems.map((item) =>
       item.id === editingItem.id ? updatedItem : item,
     );
-    setLocalItems((prev) => ({ ...prev, [activeType.id]: updatedItems }));
+    updateItems(updatedItems);
     setEditingItem(updatedItem);
   }
 
   function handleDelete() {
     if (!editingItem) return;
-    const updatedItems = currentItems.filter((item) => item.id !== editingItem.id);
-    setLocalItems((prev) => ({ ...prev, [activeType.id]: updatedItems }));
+    updateItems(currentItems.filter((item) => item.id !== editingItem.id));
     closeEditor();
   }
 

@@ -127,3 +127,9 @@ export interface Project {
   readinessItems: ReadinessItem[];
   readinessScore: number;
 }
+
+export interface UploadResult {
+  fileCount: number;
+  fileTree: string[];
+  entryFile: string;
+}

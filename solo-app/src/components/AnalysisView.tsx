@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Circle } from 'lucide-react';
-import type { AnalysisStep } from '../data/types';
+import type { AnalysisStep, Project } from '../data/types';
 
 interface AnalysisViewProps {
   steps: AnalysisStep[];
-  onComplete: () => void;
+  onComplete: (project?: Project) => void;
+  /** When true, polls /api/analysis for real data instead of using timer. */
+  polling?: boolean;
+  fileCount?: number;
 }
 
-export default function AnalysisView({ steps: initialSteps, onComplete }: AnalysisViewProps) {
+export default function AnalysisView({ steps: initialSteps, onComplete, polling, fileCount }: AnalysisViewProps) {
   const [steps, setSteps] = useState<AnalysisStep[]>(() =>
     initialSteps.map((s) => ({ ...s, status: 'pending' as const }))
   );
@@ -18,7 +21,67 @@ export default function AnalysisView({ steps: initialSteps, onComplete }: Analys
   const inProgressStep = steps.find((s) => s.status === 'in-progress');
   const progress = (completedCount / steps.length) * 100;
 
+  // ─── Polling mode: real server analysis ──────────────────────
   useEffect(() => {
+    if (!polling) return;
+
+    let cancelled = false;
+
+    // Immediately mark first step as in-progress
+    setSteps((prev) => prev.map((s, i) => (i === 0 ? { ...s, status: 'in-progress' as const } : s)));
+
+    let stepIndex = 0;
+    const stepTimer = setInterval(() => {
+      if (cancelled) return;
+      stepIndex++;
+      setSteps((prev) =>
+        prev.map((s, i) => {
+          if (i < stepIndex) return { ...s, status: 'complete' as const };
+          if (i === stepIndex) return { ...s, status: 'in-progress' as const };
+          return s;
+        }),
+      );
+    }, 800);
+
+    // Poll for analysis completion
+    const pollTimer = setInterval(async () => {
+      if (cancelled) return;
+      try {
+        const res = await fetch('/api/analysis');
+        const data = await res.json();
+
+        if (data.status === 'complete' && data.project && !cancelled) {
+          cancelled = true;
+          clearInterval(stepTimer);
+          clearInterval(pollTimer);
+
+          // Complete all remaining steps
+          setSteps((prev) => prev.map((s) => ({ ...s, status: 'complete' as const })));
+
+          // Delay to show completion animation
+          setTimeout(() => {
+            if (!completedRef.current) {
+              completedRef.current = true;
+              onComplete(data.project as Project);
+            }
+          }, 600);
+        }
+      } catch {
+        // Network error — keep polling
+      }
+    }, 2000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(stepTimer);
+      clearInterval(pollTimer);
+    };
+  }, [polling, onComplete]);
+
+  // ─── Timer mode: demo/sample analysis ────────────────────────
+  useEffect(() => {
+    if (polling) return;
+
     setSteps(initialSteps.map((s) => ({ ...s, status: 'pending' as const })));
     completedRef.current = false;
 
@@ -54,15 +117,17 @@ export default function AnalysisView({ steps: initialSteps, onComplete }: Analys
     }, 600);
 
     return () => clearInterval(timer);
-  }, [initialSteps]);
+  }, [initialSteps, polling]);
 
+  // ─── Auto-complete callback for timer mode ───────────────────
   useEffect(() => {
+    if (polling) return;
     if (completedCount === steps.length && steps.length > 0 && !completedRef.current) {
       completedRef.current = true;
-      const timeout = setTimeout(onComplete, 800);
+      const timeout = setTimeout(() => onComplete(), 800);
       return () => clearTimeout(timeout);
     }
-  }, [completedCount, steps.length, onComplete]);
+  }, [completedCount, steps.length, onComplete, polling]);
 
   return (
     <div className="flex h-full w-full items-center justify-center bg-bg">
@@ -83,7 +148,9 @@ export default function AnalysisView({ steps: initialSteps, onComplete }: Analys
           transition={{ duration: 0.4, delay: 0.15 }}
           className="mt-2 text-sm text-text-secondary"
         >
-          Building your intelligent launch canvas
+          {fileCount
+            ? `Processing ${fileCount} files — building your launch canvas`
+            : 'Building your intelligent launch canvas'}
         </motion.p>
 
         {/* Progress bar */}
