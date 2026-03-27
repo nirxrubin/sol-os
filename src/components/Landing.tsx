@@ -45,7 +45,7 @@ export default function Landing({ onImport }: LandingProps) {
         {/* Upload area */}
         <button
           onClick={onImport}
-          className="animate-fade-up-3 mt-12 flex w-full max-w-lg cursor-pointer flex-col items-center rounded-2xl border-2 border-dashed border-border bg-bg-card/50 p-12 transition-colors hover:border-accent/50 hover:bg-bg-card"
+          className="animate-fade-up-3 mt-12 flex w-full max-w-lg cursor-pointer flex-col items-center rounded-xl border-2 border-dashed border-border bg-bg-card/50 p-12 transition-colors hover:border-accent/50 hover:bg-bg-card"
         >
           <Upload className="h-10 w-10 text-text-muted" />
           <p className="mt-4 font-medium text-text">Drop your project files here</p>

@@ -71,11 +71,11 @@ export default function ChatPanel({ messages, onSend, onClose }: ChatPanelProps)
         {messages.map((msg) => (
           <div key={msg.id}>
             {msg.role === 'user' ? (
-              <div className="ml-12 rounded-2xl rounded-br-sm bg-accent px-4 py-3">
+              <div className="ml-12 rounded-xl rounded-br-sm bg-accent px-4 py-3">
                 <p className="text-sm text-brand-950 whitespace-pre-wrap">{msg.content}</p>
               </div>
             ) : (
-              <div className="mr-12 rounded-2xl rounded-bl-sm border border-border bg-bg-card px-4 py-3">
+              <div className="mr-12 rounded-xl rounded-bl-sm border border-border bg-bg-card px-4 py-3">
                 <p className="text-sm text-text-secondary whitespace-pre-wrap">{msg.content}</p>
               </div>
             )}

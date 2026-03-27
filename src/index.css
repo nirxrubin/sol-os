@@ -110,12 +110,12 @@
   --shadow-2xl: 0px 12px 24px -6px rgba(0,0,0,0.12);
 
   /* Border radii */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 24px;
-  --radius-3xl: 28px;
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-2xl: 14px;
+  --radius-3xl: 18px;
   --radius-full: 9999px;
 }
 

@@ -256,7 +256,7 @@ export default function SetupBanner({ onDismiss, onComplete }: SetupBannerProps)
                               key={idx}
                               type="button"
                               onClick={() => handleSelect(idx)}
-                              className={`relative text-left bg-bg-card border rounded-xl p-5 transition-colors ${
+                              className={`relative text-left bg-bg-card border rounded-lg p-5 transition-colors ${
                                 isSelected
                                   ? 'border-accent bg-accent/5'
                                   : 'border-border hover:border-accent'
@@ -290,11 +290,11 @@ export default function SetupBanner({ onDismiss, onComplete }: SetupBannerProps)
                       </p>
 
                       {/* Agent chat area */}
-                      <div className="rounded-xl border border-border bg-bg-card mb-4">
+                      <div className="rounded-lg border border-border bg-bg-card mb-4">
                         <div className="max-h-[180px] overflow-y-auto px-4 py-3 space-y-2.5">
                           {agentMessages.map((msg) => (
                             <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                              <div className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
+                              <div className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
                                 msg.role === 'user'
                                   ? 'bg-accent text-brand-950 rounded-br-sm'
                                   : 'bg-bg-elevated text-text-secondary rounded-bl-sm'
@@ -305,7 +305,7 @@ export default function SetupBanner({ onDismiss, onComplete }: SetupBannerProps)
                           ))}
                           {!agentDone && agentMessages.length > 0 && agentMessages.length < AGENT_AUTO_MESSAGES.length && (
                             <div className="flex justify-start">
-                              <div className="rounded-xl bg-bg-elevated px-3 py-2 text-sm text-text-muted">
+                              <div className="rounded-lg bg-bg-elevated px-3 py-2 text-sm text-text-muted">
                                 <span className="animate-pulse">●●●</span>
                               </div>
                             </div>

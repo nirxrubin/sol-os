@@ -302,8 +302,8 @@ export default function TechDetailView({ sector }: TechDetailViewProps) {
                 <div
                   className={
                     msg.role === 'user'
-                      ? 'ml-8 rounded-2xl rounded-br-sm bg-accent px-4 py-2.5 text-sm text-brand-950'
-                      : 'mr-8 rounded-2xl rounded-bl-sm bg-bg-elevated px-4 py-2.5 text-sm text-text-secondary'
+                      ? 'ml-8 rounded-xl rounded-br-sm bg-accent px-4 py-2.5 text-sm text-brand-950'
+                      : 'mr-8 rounded-xl rounded-bl-sm bg-bg-elevated px-4 py-2.5 text-sm text-text-secondary'
                   }
                 >
                   <span className="whitespace-pre-wrap">{msg.content}</span>

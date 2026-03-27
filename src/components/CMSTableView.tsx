@@ -363,7 +363,7 @@ export default function CMSTableView({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={`Search ${activeType.name}...`}
-            className="w-full rounded-xl border border-border bg-bg-card py-2 pl-9 pr-3 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none"
+            className="w-full rounded-lg border border-border bg-bg-card py-2 pl-9 pr-3 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none"
           />
         </div>
         <button
@@ -383,12 +383,12 @@ export default function CMSTableView({
               {columns.map((col) => (
                 <th
                   key={col}
-                  className="pb-3 pr-4 text-[11px] font-semibold uppercase tracking-wider text-text-muted"
+                  className="pb-4 pr-6 text-[11px] font-semibold uppercase tracking-wider text-text-muted"
                 >
                   {col}
                 </th>
               ))}
-              <th className="pb-3 text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+              <th className="pb-4 text-[11px] font-semibold uppercase tracking-wider text-text-muted">
                 Status
               </th>
             </tr>
@@ -403,21 +403,21 @@ export default function CMSTableView({
                 {columns.map((col, idx) => {
                   const val = cellValue(item, col);
                   const isTitle = idx === 0;
-                  const isExcerpt = col === 'excerpt';
                   return (
                     <td
                       key={col}
-                      className={`py-3.5 pr-4 text-sm ${
+                      className={`py-4.5 pr-6 text-sm max-w-[220px] truncate ${
                         isTitle
-                          ? 'font-medium text-accent hover:text-accent-hover'
+                          ? 'font-medium text-accent hover:text-accent-hover max-w-[180px]'
                           : 'text-text-secondary'
-                      } ${isExcerpt ? 'max-w-[260px] truncate' : ''}`}
+                      }`}
+                      title={val}
                     >
                       {val}
                     </td>
                   );
                 })}
-                <td className="py-3.5">
+                <td className="py-4.5">
                   {item.status === 'published' ? (
                     <span className="rounded-full bg-badge-published/20 px-2.5 py-0.5 text-xs text-status-green">
                       Published
@@ -465,7 +465,7 @@ export default function CMSTableView({
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed right-0 top-0 z-50 flex h-full w-[520px] flex-col rounded-l-2xl border-l border-border bg-bg-card shadow-2xl"
+              className="fixed right-0 top-0 z-50 flex h-full w-[520px] flex-col rounded-l-xl border-l border-border bg-bg-card shadow-2xl"
             >
               {/* Header */}
               <div className="flex items-center justify-between border-b border-border px-6 py-4">
@@ -577,7 +577,7 @@ export default function CMSTableView({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border bg-bg-card p-6 shadow-2xl"
+              className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-bg-card p-6 shadow-2xl"
             >
               {/* Modal Header */}
               <div className="mb-5 flex items-center justify-between">
