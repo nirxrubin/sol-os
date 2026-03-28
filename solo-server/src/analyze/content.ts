@@ -732,3 +732,223 @@ function deduplicateItems(items: ContentItem[], keyField: string): ContentItem[]
 function capitalize(str: string): string {
   return str.replace(/\b\w/g, (c) => c.toUpperCase());
 }
+
+// ─── Rendered Content Analysis (Puppeteer output) ────────────────
+// Reuses the same detection patterns but on JS-rendered HTML.
+
+import type { RenderedPage } from './renderer.js';
+
+export async function analyzeRenderedContent(
+  renderedPages: RenderedPage[],
+): Promise<ContentType[]> {
+  const contentTypes: ContentType[] = [];
+  const now = new Date().toISOString();
+
+  // Build Cheerio instances from rendered HTML
+  const allHtmlData: { file: string; $: cheerio.CheerioAPI }[] = [];
+  for (const rp of renderedPages) {
+    allHtmlData.push({
+      file: rp.path === '/' ? 'index.html' : rp.path.replace(/^\//, ''),
+      $: cheerio.load(rp.renderedHTML),
+    });
+  }
+
+  // Run the same detection patterns as the static analyzer
+  // (duplicated intentionally to keep rendered analysis self-contained)
+
+  // ─── Blog Posts from rendered DOM ──────────────────────────────
+  const blogItems: ContentItem[] = [];
+  for (const { $, file } of allHtmlData) {
+    $('[class*="blog"], [class*="post"], [class*="article"], article, [class*="news"]').each((_, section) => {
+      const $section = $(section);
+      const cards = $section.find('[class*="card"], [class*="post"], article, [class*="item"], > div > div, > a');
+      if (cards.length >= 2) {
+        cards.each((_, card) => {
+          const $card = $(card);
+          const $titleEl = $card.find('h2, h3, [class*="title"]').first();
+          const $excerptEl = $card.find('p, [class*="excerpt"], [class*="desc"]').first();
+          const $dateEl = $card.find('time, [class*="date"]').first();
+          const $categoryEl = $card.find('[class*="category"], [class*="tag"]').first();
+          const $authorEl = $card.find('[class*="author"]').first();
+
+          const title = $titleEl.text().trim();
+          const excerpt = $excerptEl.text().trim();
+          const date = $dateEl.text().trim();
+          const category = $categoryEl.text().trim();
+          const author = $authorEl.text().trim();
+
+          if (title && title.length > 5 && title.length < 200) {
+            blogItems.push({
+              id: `blog-${blogItems.length + 1}`,
+              data: {
+                title,
+                slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+                excerpt: excerpt !== title ? excerpt : '',
+                body: '',
+                cover: '',
+                author: author || '',
+                date: date || now,
+                category: category || 'General',
+              },
+              status: 'published',
+              createdAt: now,
+              updatedAt: now,
+            });
+          }
+        });
+      }
+    });
+  }
+
+  if (blogItems.length > 0) {
+    contentTypes.push({
+      id: 'ct-blog',
+      name: 'Blog Posts',
+      fields: [
+        { id: 'f-title', name: 'title', type: 'text', required: true },
+        { id: 'f-slug', name: 'slug', type: 'text', required: true },
+        { id: 'f-excerpt', name: 'excerpt', type: 'text', required: false },
+        { id: 'f-body', name: 'body', type: 'richtext', required: false },
+        { id: 'f-cover', name: 'cover', type: 'image', required: false },
+        { id: 'f-author', name: 'author', type: 'text', required: false },
+        { id: 'f-date', name: 'date', type: 'date', required: false },
+        { id: 'f-category', name: 'category', type: 'text', required: false },
+      ],
+      items: deduplicateItems(blogItems, 'title'),
+      linkedPages: renderedPages.filter(rp => rp.innerText.toLowerCase().includes('blog')).map(rp => rp.path),
+    });
+  }
+
+  // ─── Team Members from rendered DOM ────────────────────────────
+  const teamItems: ContentItem[] = [];
+  for (const { $, file } of allHtmlData) {
+    $('[class*="team"], [id*="team"], [class*="member"], [class*="staff"], [class*="people"]').each((_, section) => {
+      const $section = $(section);
+      const cards = $section.find('[class*="card"], [class*="member"], [class*="person"], [class*="col"], > div > div');
+      if (cards.length >= 2) {
+        cards.each((_, card) => {
+          const $card = $(card);
+          const name = $card.find('h3, h4, [class*="name"]').first().text().trim();
+          const role = $card.find('[class*="role"], [class*="title"], [class*="position"], p').first().text().trim();
+          const photo = $card.find('img').first().attr('src') || '';
+
+          if (name && name.length < 60) {
+            teamItems.push({
+              id: `team-${teamItems.length + 1}`,
+              data: { name, role: role !== name ? role : '', bio: '', photo },
+              status: 'published',
+              createdAt: now,
+              updatedAt: now,
+            });
+          }
+        });
+      }
+    });
+  }
+
+  if (teamItems.length > 0) {
+    contentTypes.push({
+      id: 'ct-team',
+      name: 'Team Members',
+      fields: [
+        { id: 'f-name', name: 'name', type: 'text', required: true },
+        { id: 'f-role', name: 'role', type: 'text', required: true },
+        { id: 'f-bio', name: 'bio', type: 'richtext', required: false },
+        { id: 'f-photo', name: 'photo', type: 'image', required: false },
+      ],
+      items: deduplicateItems(teamItems, 'name'),
+      linkedPages: ['team'],
+    });
+  }
+
+  // ─── Testimonials from rendered DOM ────────────────────────────
+  const testimonialItems: ContentItem[] = [];
+  for (const { $ } of allHtmlData) {
+    $('[class*="testimonial"], [class*="review"], blockquote').each((_, el) => {
+      const $el = $(el);
+      if (el.tagName === 'blockquote') {
+        const quote = $el.text().trim();
+        if (quote.length > 20) {
+          testimonialItems.push({
+            id: `testimonial-${testimonialItems.length + 1}`,
+            data: { quote, name: '', role: '', company: '' },
+            status: 'published',
+            createdAt: now,
+            updatedAt: now,
+          });
+        }
+        return;
+      }
+      const cards = $el.find('[class*="card"], [class*="item"], > div > div, blockquote');
+      if (cards.length >= 2) {
+        cards.each((_, card) => {
+          const $card = $(card);
+          const quote = $card.find('p, blockquote, [class*="quote"]').first().text().trim();
+          const name = $card.find('[class*="name"], [class*="author"], strong, h4').first().text().trim();
+          if (quote && quote.length > 15) {
+            testimonialItems.push({
+              id: `testimonial-${testimonialItems.length + 1}`,
+              data: { quote, name, role: '', company: '' },
+              status: 'published',
+              createdAt: now,
+              updatedAt: now,
+            });
+          }
+        });
+      }
+    });
+  }
+
+  if (testimonialItems.length > 0) {
+    contentTypes.push({
+      id: 'ct-testimonials',
+      name: 'Testimonials',
+      fields: [
+        { id: 'f-quote', name: 'quote', type: 'richtext', required: true },
+        { id: 'f-name', name: 'name', type: 'text', required: true },
+        { id: 'f-role', name: 'role', type: 'text', required: false },
+        { id: 'f-company', name: 'company', type: 'text', required: false },
+      ],
+      items: deduplicateItems(testimonialItems, 'quote'),
+      linkedPages: ['testimonials'],
+    });
+  }
+
+  // ─── FAQs from rendered DOM ────────────────────────────────────
+  const faqItems: ContentItem[] = [];
+  for (const { $ } of allHtmlData) {
+    $('[class*="faq"], [class*="accordion"], details').each((_, el) => {
+      const $el = $(el);
+      if (el.tagName === 'details') {
+        const question = $el.find('summary').text().trim();
+        const answer = $el.clone().find('summary').remove().end().text().trim();
+        if (question) {
+          faqItems.push({
+            id: `faq-${faqItems.length + 1}`,
+            data: { question, answer, category: 'General', order: faqItems.length },
+            status: 'published',
+            createdAt: now,
+            updatedAt: now,
+          });
+        }
+      }
+    });
+  }
+
+  if (faqItems.length > 0) {
+    contentTypes.push({
+      id: 'ct-faq',
+      name: 'FAQs',
+      fields: [
+        { id: 'f-question', name: 'question', type: 'text', required: true },
+        { id: 'f-answer', name: 'answer', type: 'richtext', required: true },
+        { id: 'f-category', name: 'category', type: 'text', required: false },
+        { id: 'f-order', name: 'order', type: 'number', required: false },
+      ],
+      items: deduplicateItems(faqItems, 'question'),
+      linkedPages: ['faq'],
+    });
+  }
+
+  return contentTypes;
+}

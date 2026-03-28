@@ -32,7 +32,6 @@ export function previewMiddleware() {
       // Fallback: serve index.html for SPA routing (React Router, etc.)
       const indexPath = path.resolve(serveRoot, 'index.html');
       if (fs.existsSync(indexPath)) {
-        // Read and send manually to avoid sendFile path resolution issues
         try {
           const html = fs.readFileSync(indexPath, 'utf-8');
           res.type('html').send(html);

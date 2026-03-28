@@ -2,12 +2,14 @@ import fs from 'fs/promises';
 import path from 'path';
 import { writeAnalysis, getProjectState, setProjectState } from '../state.js';
 import { analyzeTech } from './tech.js';
-import { analyzePages } from './pages.js';
-import { analyzeContent } from './content.js';
+import { analyzePages, analyzePagesFromRendered } from './pages.js';
+import { analyzeContent, analyzeRenderedContent } from './content.js';
 import { analyzeMedia } from './media.js';
 import { analyzeReadiness } from './readiness.js';
 import { buildProject } from './build.js';
 import { detectSPARoutes } from './routes.js';
+import { renderPages } from './renderer.js';
+import { mergeAnalysis } from './merge.js';
 
 export async function analyzeProject(projectRoot: string, fileTree: string[]) {
   console.log(`Analyzing project at ${projectRoot} (${fileTree.length} files)...`);
@@ -21,7 +23,6 @@ export async function analyzeProject(projectRoot: string, fileTree: string[]) {
       console.log(`  Build error: ${buildResult.buildError.slice(0, 200)}`);
     }
 
-    // Update project state with servePath and build info
     const state = getProjectState();
     if (state) {
       setProjectState({
@@ -34,35 +35,31 @@ export async function analyzeProject(projectRoot: string, fileTree: string[]) {
     }
   }
 
-  // ── Step 2: Run analyzers ──────────────────────────────────────
-  // Analyze source for tech/content/media, analyze built output for pages
-  const [sectors, sourcePages, contentTypes, media] = await Promise.all([
+  // ── Step 2: Static analysis (parallel) ─────────────────────────
+  const [sectors, sourcePages, staticContent, media] = await Promise.all([
     analyzeTech(projectRoot, fileTree),
     analyzePages(projectRoot, fileTree),
     analyzeContent(projectRoot, fileTree),
     analyzeMedia(projectRoot, fileTree),
   ]);
 
-  // ── Step 3: For SPA projects, detect routes from source code ───
-  let pages = sourcePages;
+  // ── Step 3: SPA route detection from source ────────────────────
+  let staticPages = sourcePages;
   if (buildResult.needed && buildResult.success) {
-    // SPA projects may only have one index.html — detect routes from source
     const spaRoutes = await detectSPARoutes(projectRoot, fileTree);
     if (spaRoutes.length > 0) {
-      pages = spaRoutes;
+      staticPages = spaRoutes;
       console.log(`  SPA routes detected: ${spaRoutes.map(r => r.path).join(', ')}`);
     } else if (sourcePages.length === 0) {
-      // Analyze the built output for pages if source had none
       const builtFileTree = await walkDir(buildResult.servePath, buildResult.servePath);
       const builtPages = await analyzePages(buildResult.servePath, builtFileTree);
       if (builtPages.length > 0) {
-        pages = builtPages;
+        staticPages = builtPages;
       }
     }
 
-    // Ensure at least a home page exists for SPA projects
-    if (pages.length === 0) {
-      pages = [{
+    if (staticPages.length === 0) {
+      staticPages = [{
         id: 'page-home',
         name: await deriveProjectNameFromPkg(projectRoot) || 'Home',
         path: '/',
@@ -72,12 +69,36 @@ export async function analyzeProject(projectRoot: string, fileTree: string[]) {
     }
   }
 
-  console.log(`  Tech sectors: ${sectors.length}`);
-  console.log(`  Pages: ${pages.length}`);
-  console.log(`  Content types: ${contentTypes.length} (${contentTypes.reduce((n, ct) => n + ct.items.length, 0)} items)`);
-  console.log(`  Media assets: ${media.length}`);
+  console.log(`  Static: ${sectors.length} sectors, ${staticPages.length} pages, ${staticContent.length} content types (${staticContent.reduce((n, ct) => n + ct.items.length, 0)} items), ${media.length} media`);
 
-  // Readiness depends on other results
+  // ── Step 4: Puppeteer rendering ────────────────────────────────
+  let renderedPageData: Awaited<ReturnType<typeof renderPages>> = [];
+  try {
+    const state = getProjectState();
+    const entryFile = state?.entryFile || 'index.html';
+    renderedPageData = await renderPages(entryFile, staticPages.map((p) => p.path));
+  } catch (err) {
+    console.warn('  Puppeteer rendering skipped:', err instanceof Error ? err.message : err);
+  }
+
+  // ── Step 4b: Analyze rendered DOM ──────────────────────────────
+  let renderedPages: Awaited<ReturnType<typeof analyzePagesFromRendered>> = [];
+  let renderedContent: Awaited<ReturnType<typeof analyzeRenderedContent>> = [];
+
+  if (renderedPageData.length > 0) {
+    renderedPages = analyzePagesFromRendered(renderedPageData);
+    renderedContent = await analyzeRenderedContent(renderedPageData);
+    console.log(`  Rendered: ${renderedPages.length} pages, ${renderedContent.length} content types (${renderedContent.reduce((n, ct) => n + ct.items.length, 0)} items)`);
+  }
+
+  // ── Step 5: Merge static + rendered ────────────────────────────
+  const { pages, contentTypes } = mergeAnalysis(
+    staticPages, staticContent, renderedPages, renderedContent,
+  );
+
+  console.log(`  Merged: ${pages.length} pages, ${contentTypes.length} content types (${contentTypes.reduce((n, ct) => n + ct.items.length, 0)} items)`);
+
+  // ── Step 6: Readiness ──────────────────────────────────────────
   const { items: readinessItems, score: readinessScore } = await analyzeReadiness(
     projectRoot,
     fileTree,
@@ -88,7 +109,6 @@ export async function analyzeProject(projectRoot: string, fileTree: string[]) {
 
   console.log(`  Readiness: ${readinessScore}%`);
 
-  // Derive project name
   const name = await deriveProjectName(projectRoot, pages);
 
   const project = {
@@ -113,13 +133,11 @@ export async function analyzeProject(projectRoot: string, fileTree: string[]) {
 }
 
 async function deriveProjectName(projectRoot: string, pages: { name: string; path: string }[]): Promise<string> {
-  // Use home page name if it's not generic
   const homePage = pages.find((p) => p.path === '/');
   if (homePage && homePage.name !== 'Home' && homePage.name.length < 40) {
     return homePage.name;
   }
 
-  // Try index.html <title> tag
   try {
     const indexHtml = await fs.readFile(path.join(projectRoot, 'index.html'), 'utf-8');
     const titleMatch = indexHtml.match(/<title>([^<]+)<\/title>/i);
@@ -129,11 +147,9 @@ async function deriveProjectName(projectRoot: string, pages: { name: string; pat
     }
   } catch { /* ignore */ }
 
-  // Try package.json name
   const pkgName = await deriveProjectNameFromPkg(projectRoot);
   if (pkgName) return pkgName;
 
-  // Fall back to directory name
   const dirName = projectRoot.split('/').filter(Boolean).pop() || 'Imported Project';
   return dirName.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -145,7 +161,7 @@ async function deriveProjectNameFromPkg(projectRoot: string): Promise<string | n
     const genericNames = ['vite-project', 'my-app', 'app', 'vite-react-shadcn-ts', 'react-app', 'my-project', 'frontend', 'client', 'web'];
     if (pkg.name && !genericNames.includes(pkg.name.toLowerCase())) {
       const name = pkg.name
-        .replace(/^@[^/]+\//, '') // Remove scope
+        .replace(/^@[^/]+\//, '')
         .replace(/[-_]/g, ' ')
         .replace(/\b\w/g, (c: string) => c.toUpperCase());
       if (name.length > 0 && name.length < 40) return name;
