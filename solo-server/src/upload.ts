@@ -33,6 +33,9 @@ uploadRouter.post('/upload', upload.single('file'), async (req, res) => {
     await fs.mkdir(extractDir, { recursive: true });
 
     await new Promise<void>((resolve, reject) => {
+      const writePromises: Promise<void>[] = [];
+      const resolvedExtractDir = path.resolve(extractDir);
+
       createReadStream(zipPath)
         .pipe(Parse())
         .on('entry', async (entry) => {
@@ -51,7 +54,13 @@ uploadRouter.post('/upload', upload.single('file'), async (req, res) => {
             return;
           }
 
-          const fullPath = path.join(extractDir, filePath);
+          const fullPath = path.resolve(extractDir, filePath);
+
+          // Path traversal protection: ensure resolved path stays within extractDir
+          if (!fullPath.startsWith(resolvedExtractDir + path.sep) && fullPath !== resolvedExtractDir) {
+            entry.autodrain();
+            return;
+          }
 
           if (type === 'Directory') {
             await fs.mkdir(fullPath, { recursive: true });
@@ -60,12 +69,24 @@ uploadRouter.post('/upload', upload.single('file'), async (req, res) => {
             await fs.mkdir(path.dirname(fullPath), { recursive: true });
             const chunks: Buffer[] = [];
             entry.on('data', (chunk: Buffer) => chunks.push(chunk));
-            entry.on('end', async () => {
-              await fs.writeFile(fullPath, Buffer.concat(chunks));
+            // Track each file write to avoid race condition on 'close'
+            const writeComplete = new Promise<void>((resolveWrite) => {
+              entry.on('end', async () => {
+                await fs.writeFile(fullPath, Buffer.concat(chunks));
+                resolveWrite();
+              });
             });
+            writePromises.push(writeComplete);
           }
         })
-        .on('close', resolve)
+        .on('close', async () => {
+          try {
+            await Promise.all(writePromises);
+            resolve();
+          } catch (err) {
+            reject(err);
+          }
+        })
         .on('error', reject);
     });
 

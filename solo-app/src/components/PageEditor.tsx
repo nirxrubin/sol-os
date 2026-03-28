@@ -1114,7 +1114,7 @@ export default function PageEditor({ page, contentTypes, onOpenCMSItem, isImport
           >
             <iframe
               ref={iframeRef}
-              src={`/preview${page.path === '/' ? '/index.html' : page.path + '.html'}`}
+              src={`/preview${page.path === '/' ? '/index.html' : page.path.endsWith('.html') ? page.path : page.path + '.html'}`}
               className="h-full w-full border-0"
               style={{
                 boxShadow: breakpoint !== 'desktop' ? '0 4px 24px -4px rgba(0,0,0,0.15)' : 'none',

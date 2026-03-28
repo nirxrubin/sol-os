@@ -15,7 +15,10 @@ import LaunchReadiness from './components/LaunchReadiness';
 
 export default function App() {
   const [view, setView] = useState<AppView>('landing');
-  const [theme, setTheme] = useState<ThemeMode>('light');
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    const stored = localStorage.getItem('sol-theme');
+    return (stored === 'dark' || stored === 'light') ? stored : 'light';
+  });
   const [mainView, setMainView] = useState<MainView>('page-editor');
 
   // Dual-mode: imported project vs sample/demo
@@ -40,14 +43,15 @@ export default function App() {
 
   // Set initial theme on mount
   useEffect(() => {
-    document.documentElement.classList.add('light');
-  }, []);
+    document.documentElement.classList.toggle('light', theme === 'light');
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Theme toggle - applies class to html element
+  // Theme toggle - applies class to html element and persists
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     document.documentElement.classList.toggle('light', next === 'light');
+    localStorage.setItem('sol-theme', next);
   };
 
   const handlePageSelect = (page: Page) => {

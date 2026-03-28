@@ -6,6 +6,8 @@
  *
  * Uses JSONL (newline-delimited JSON) for O(1) appends — no need to
  * parse the entire history on every write.
+ *
+ * In-memory cache avoids re-reading/parsing the full file on every query.
  */
 
 import fs from 'fs/promises';
@@ -42,21 +44,28 @@ export interface ChangelogSummary {
 let logFile: string | null = null;
 let versionCounter = 0;
 
+// In-memory cache — always in sync since changelog is append-only
+let entriesCache: ChangelogEntry[] | null = null;
+
 // ─── Init ─────────────────────────────────────────────────────────
 
 export function initChangelog(workspacePath: string): void {
   logFile = path.join(workspacePath, '.sol-changelog.jsonl');
-  // Read existing entries to set version counter
+  entriesCache = null; // Reset cache on init
+
+  // Read existing entries to set version counter and warm cache
   try {
     const { readFileSync } = require('fs');
     const content = readFileSync(logFile, 'utf-8');
     const lines = content.trim().split('\n').filter(Boolean);
-    if (lines.length > 0) {
-      const last = JSON.parse(lines[lines.length - 1]) as ChangelogEntry;
-      versionCounter = last.version;
+    const parsed = lines.map((line: string) => JSON.parse(line) as ChangelogEntry);
+    entriesCache = parsed;
+    if (parsed.length > 0) {
+      versionCounter = parsed[parsed.length - 1].version;
     }
   } catch {
     versionCounter = 0;
+    entriesCache = [];
   }
 }
 
@@ -86,6 +95,10 @@ export async function recordChange(
   // Append-only write — O(1) regardless of history length
   try {
     await fs.appendFile(logFile, JSON.stringify(entry) + '\n');
+    // Keep cache in sync
+    if (entriesCache) {
+      entriesCache.push(entry);
+    }
   } catch {
     // Non-blocking — changelog failure should never block edits
   }
@@ -106,7 +119,27 @@ export async function recordChanges(
   return entries;
 }
 
-// ─── Read ─────────────────────────────────────────────────────────
+// ─── Read (cache-first) ──────────────────────────────────────────
+
+async function getAllEntries(): Promise<ChangelogEntry[]> {
+  // Return cache if available
+  if (entriesCache) return entriesCache;
+
+  if (!logFile) return [];
+
+  try {
+    const content = await fs.readFile(logFile, 'utf-8');
+    entriesCache = content
+      .trim()
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => JSON.parse(line) as ChangelogEntry);
+    return entriesCache;
+  } catch {
+    entriesCache = [];
+    return [];
+  }
+}
 
 export async function getChangelog(options?: {
   limit?: number;
@@ -114,38 +147,27 @@ export async function getChangelog(options?: {
   page?: string;
   source?: ChangeSource;
 }): Promise<ChangelogEntry[]> {
-  if (!logFile) return [];
+  let entries = await getAllEntries();
 
-  try {
-    const content = await fs.readFile(logFile, 'utf-8');
-    let entries = content
-      .trim()
-      .split('\n')
-      .filter(Boolean)
-      .map((line) => JSON.parse(line) as ChangelogEntry);
-
-    // Filter
-    if (options?.page) {
-      entries = entries.filter((e) => e.page === options.page);
-    }
-    if (options?.source) {
-      entries = entries.filter((e) => e.source === options.source);
-    }
-
-    // Most recent first
-    entries.reverse();
-
-    // Pagination
-    const offset = options?.offset ?? 0;
-    const limit = options?.limit ?? 100;
-    return entries.slice(offset, offset + limit);
-  } catch {
-    return [];
+  // Filter
+  if (options?.page) {
+    entries = entries.filter((e) => e.page === options.page);
   }
+  if (options?.source) {
+    entries = entries.filter((e) => e.source === options.source);
+  }
+
+  // Most recent first (copy to avoid mutating cache)
+  const reversed = [...entries].reverse();
+
+  // Pagination
+  const offset = options?.offset ?? 0;
+  const limit = options?.limit ?? 100;
+  return reversed.slice(offset, offset + limit);
 }
 
 export async function getChangelogSummary(): Promise<ChangelogSummary> {
-  const entries = await getChangelog({ limit: 10000 });
+  const entries = await getAllEntries();
 
   const changesBySource: Record<string, number> = {};
   const changedPagesSet = new Set<string>();
@@ -157,7 +179,7 @@ export async function getChangelogSummary(): Promise<ChangelogSummary> {
 
   return {
     totalChanges: entries.length,
-    lastChange: entries[0],
+    lastChange: entries[entries.length - 1],
     changesBySource: changesBySource as Record<ChangeSource, number>,
     changedPages: Array.from(changedPagesSet),
   };
@@ -166,8 +188,8 @@ export async function getChangelogSummary(): Promise<ChangelogSummary> {
 // ─── Changes since a specific version (for deploy diffs) ──────────
 
 export async function getChangesSince(version: number): Promise<ChangelogEntry[]> {
-  const all = await getChangelog({ limit: 100000 });
-  return all.filter((e) => e.version > version).reverse(); // chronological order
+  const all = await getAllEntries();
+  return all.filter((e) => e.version > version); // chronological order (already sorted)
 }
 
 // ─── Clear (for project re-import) ────────────────────────────────
@@ -177,5 +199,6 @@ export async function clearChangelog(): Promise<void> {
   try {
     await fs.writeFile(logFile, '');
     versionCounter = 0;
+    entriesCache = [];
   } catch { /* ignore */ }
 }

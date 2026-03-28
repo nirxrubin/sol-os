@@ -318,7 +318,7 @@ export async function applyCMSChanges(
       if (!editsByPage.has(page)) editsByPage.set(page, []);
 
       // Determine edit type based on field content
-      const isImage = change.fieldName.match(/image|photo|avatar|cover|src/i);
+      const isImage = change.fieldName.match(/^(image|photo|avatar|cover|src|thumbnail|banner|logo|icon)$/i);
       editsByPage.get(page)!.push({
         page,
         selector: binding.selector,

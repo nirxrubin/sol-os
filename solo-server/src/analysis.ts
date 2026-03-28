@@ -12,12 +12,20 @@ analysisRouter.get('/analysis', async (_req, res) => {
     return;
   }
 
-  const analysis = await readAnalysis();
-
-  res.json({
-    status,
-    fileCount: projectState.fileCount,
-    entryFile: projectState.entryFile,
-    project: analysis,
-  });
+  // Only read and return project data when analysis is complete
+  if (status === 'complete') {
+    const analysis = await readAnalysis();
+    res.json({
+      status,
+      fileCount: projectState.fileCount,
+      entryFile: projectState.entryFile,
+      project: analysis ?? null,
+    });
+  } else {
+    res.json({
+      status,
+      fileCount: projectState.fileCount,
+      entryFile: projectState.entryFile,
+    });
+  }
 });

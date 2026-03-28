@@ -26,6 +26,7 @@ export default function AnalysisView({ steps: initialSteps, onComplete, polling,
     if (!polling) return;
 
     let cancelled = false;
+    let completeTimeout: ReturnType<typeof setTimeout> | null = null;
 
     // Immediately mark first step as in-progress
     setSteps((prev) => prev.map((s, i) => (i === 0 ? { ...s, status: 'in-progress' as const } : s)));
@@ -59,10 +60,13 @@ export default function AnalysisView({ steps: initialSteps, onComplete, polling,
           setSteps((prev) => prev.map((s) => ({ ...s, status: 'complete' as const })));
 
           // Delay to show completion animation
-          setTimeout(() => {
+          // Note: cancelled is true here (set above to stop polling), so we
+          // only guard with completedRef to prevent double-fire.
+          const project = data.project as Project;
+          completeTimeout = setTimeout(() => {
             if (!completedRef.current) {
               completedRef.current = true;
-              onComplete(data.project as Project);
+              onComplete(project);
             }
           }, 600);
         }
@@ -75,6 +79,7 @@ export default function AnalysisView({ steps: initialSteps, onComplete, polling,
       cancelled = true;
       clearInterval(stepTimer);
       clearInterval(pollTimer);
+      if (completeTimeout) clearTimeout(completeTimeout);
     };
   }, [polling, onComplete]);
 
