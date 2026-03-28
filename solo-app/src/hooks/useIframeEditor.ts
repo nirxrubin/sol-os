@@ -54,19 +54,6 @@ async function uploadAsset(file: File): Promise<string | null> {
   }
 }
 
-async function postCMSSync(changes: { contentTypeId: string; itemId: string; fieldName: string; newValue: string }[]): Promise<boolean> {
-  try {
-    const res = await fetch('/api/source/cms-sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ changes }),
-    });
-    const data = await res.json();
-    return data.ok === true;
-  } catch {
-    return false;
-  }
-}
 
 // ─── Main hook ────────────────────────────────────────────────────
 
@@ -97,7 +84,7 @@ export function useIframeEditor(
     });
   }, [iframeRef]);
 
-  // Resolve page path for edits — map "/" to "/index.html"
+  // Resolve page path for edits - map "/" to "/index.html"
   const resolvePageFile = useCallback((p?: string): string => {
     if (!p) return '/index.html';
     if (p === '/') return '/index.html';
@@ -143,7 +130,7 @@ export function useIframeEditor(
       return;
     }
 
-    // No need to fetch/apply overlays — the iframe loads the REAL source file
+    // No need to fetch/apply overlays - the iframe loads the REAL source file
     // which already has all edits baked in from previous saves.
 
     cleanupRef.current = initIframeEditor(doc, {
@@ -248,7 +235,7 @@ export function useIframeEditor(
     setToolbarPos((p) => ({ ...p, visible: false }));
   }, [iframeRef]);
 
-  // Image replacement — uploads to server, gets a real project-relative path
+  // Image replacement - uploads to server, gets a real project-relative path
   const replaceImage = useCallback(async (file: File) => {
     const relativePath = await uploadAsset(file);
     if (!relativePath) return;
@@ -263,57 +250,6 @@ export function useIframeEditor(
     } catch { /* ignore */ }
   }, [iframeRef]);
 
-  // CMS → Canvas sync: push CMS changes to source files AND iframe DOM
-  const syncCMSToCanvas = useCallback(async (
-    updatedContentTypes: ContentType[],
-    prevContentTypes: ContentType[],
-  ) => {
-    // Compute changes: diff old vs new content type items
-    const changes: { contentTypeId: string; itemId: string; fieldName: string; newValue: string }[] = [];
-
-    for (const ct of updatedContentTypes) {
-      const prevCt = prevContentTypes.find((p) => p.id === ct.id);
-      if (!prevCt) continue;
-
-      for (const item of ct.items) {
-        const prevItem = prevCt.items.find((p) => p.id === item.id);
-        if (!prevItem) continue;
-
-        for (const [fieldName, value] of Object.entries(item.data)) {
-          const prevValue = prevItem.data[fieldName];
-          if (typeof value === 'string' && value !== prevValue) {
-            changes.push({
-              contentTypeId: ct.id,
-              itemId: item.id,
-              fieldName,
-              newValue: value,
-            });
-          }
-        }
-      }
-    }
-
-    if (changes.length === 0) return;
-
-    // Push to source files via server (which uses bindings from analysis)
-    await postCMSSync(changes);
-
-    // Also update the iframe DOM for instant visual feedback
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-    let doc: Document;
-    try {
-      doc = iframe.contentDocument!;
-      if (!doc?.body) return;
-    } catch {
-      return;
-    }
-
-    // Reload the iframe to show the updated source file
-    // (simpler and more reliable than patching individual DOM elements)
-    iframe.contentWindow?.location.reload();
-  }, [iframeRef]);
-
   return {
     selection,
     toolbarPos,
@@ -321,7 +257,6 @@ export function useIframeEditor(
     execFormat,
     deselect,
     replaceImage,
-    syncCMSToCanvas,
     flushEdits,
   };
 }

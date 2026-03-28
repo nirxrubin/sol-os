@@ -71,7 +71,7 @@ export default function AnalysisView({ steps: initialSteps, onComplete, polling,
           }, 600);
         }
       } catch {
-        // Network error — keep polling
+        // Network error - keep polling
       }
     }, 2000);
 
@@ -154,7 +154,7 @@ export default function AnalysisView({ steps: initialSteps, onComplete, polling,
           className="mt-2 text-sm text-text-secondary"
         >
           {fileCount
-            ? `Processing ${fileCount} files — building your launch canvas`
+            ? `Processing ${fileCount} files - building your launch canvas`
             : 'Building your intelligent launch canvas'}
         </motion.p>
 

@@ -59,9 +59,9 @@ interface AgentMessage {
 
 const AGENT_AUTO_MESSAGES: AgentMessage[] = [
   { id: 'a1', role: 'agent', content: 'Starting auto-integration based on your selections...' },
-  { id: 'a2', role: 'agent', content: '✓ Hosting provider configured — deploying to Vercel.' },
+  { id: 'a2', role: 'agent', content: '✓ Hosting provider configured - deploying to Vercel.' },
   { id: 'a3', role: 'agent', content: '✓ Domain DNS records prepared. Connect when ready.' },
-  { id: 'a4', role: 'agent', content: '✓ Analytics snippet installed — privacy-first mode.' },
+  { id: 'a4', role: 'agent', content: '✓ Analytics snippet installed - privacy-first mode.' },
   { id: 'a5', role: 'agent', content: 'All integrations are set up! Your site is ready to launch. 🚀' },
 ];
 
@@ -136,7 +136,7 @@ export default function SetupBanner({ onDismiss, onComplete }: SetupBannerProps)
     setAgentInput('');
     setAgentMessages((prev) => [...prev, userMsg]);
     setTimeout(() => {
-      const reply: AgentMessage = { id: `r-${Date.now()}`, role: 'agent', content: `Got it — I'll handle "${trimmed}" for you. Configuration updated.` };
+      const reply: AgentMessage = { id: `r-${Date.now()}`, role: 'agent', content: `Got it - I'll handle "${trimmed}" for you. Configuration updated.` };
       setAgentMessages((prev) => [...prev, reply]);
     }, 1000);
   };

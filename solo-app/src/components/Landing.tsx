@@ -129,7 +129,7 @@ export default function Landing({ onImport }: LandingProps) {
             {uploading ? 'Uploading & extracting...' : 'Drop your project .zip here'}
           </p>
           <p className="mt-2 text-sm text-text-secondary">
-            {uploading ? 'This may take a moment' : 'Or click to browse — static sites, built SPAs, exported projects'}
+            {uploading ? 'This may take a moment' : 'Or click to browse - static sites, built SPAs, exported projects'}
           </p>
         </button>
 

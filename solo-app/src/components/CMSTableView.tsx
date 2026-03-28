@@ -68,7 +68,7 @@ function cellValue(item: ContentItem, col: string): string {
   const val =
     (item.data[col] as string | undefined) ??
     (item as unknown as Record<string, unknown>)[col];
-  if (val == null) return '—';
+  if (val == null) return '-';
   if (typeof val === 'string' && col === 'date') return formatDate(val);
   if (typeof val === 'string') return val;
   return String(val);
@@ -599,7 +599,7 @@ export default function CMSTableView({
               {/* Modal Header */}
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="font-heading text-base font-semibold text-text">
-                  Manage Fields — {activeType.name}
+                  Manage Fields - {activeType.name}
                 </h2>
                 <button
                   onClick={() => setShowFieldManager(false)}

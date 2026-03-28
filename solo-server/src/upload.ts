@@ -115,8 +115,8 @@ uploadRouter.post('/upload', upload.single('file'), async (req, res) => {
       ?? fileTree.find((f) => f.endsWith('.html'))
       ?? 'index.html';
 
-    // Save state
-    setProjectState({ projectRoot, fileTree, fileCount: fileTree.length, entryFile });
+    // Save state (servePath starts as projectRoot, updated after build)
+    setProjectState({ projectRoot, servePath: projectRoot, fileTree, fileCount: fileTree.length, entryFile });
     setAnalysisStatus('analyzing');
 
     // Respond immediately, run analysis async

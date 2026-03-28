@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Circle, Send } from 'lucide-react';
+import { CheckCircle2, Circle, Send, Sparkles, Lock } from 'lucide-react';
 import SolLogo from './SolLogo';
 import type { TechSector } from '../data/types';
+import { deployBundles } from '../data/bundles';
 
 interface TechDetailViewProps {
   sector: TechSector;
@@ -25,30 +26,36 @@ const statusConfig: Record<
 
 const suggestedPrompts = [
   'Set up automatically',
-  'Compare providers',
+  'What does this do?',
   'Check requirements',
 ];
 
 export default function TechDetailView({ sector }: TechDetailViewProps) {
   const status = statusConfig[sector.status];
-  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
-      content: `I'm your ${sector.name} agent. I can help you configure ${sector.name.toLowerCase()} for your project. Click a provider to start integration, or ask me anything.`,
+      content: `I'm your ${sector.name} agent. I can help you understand and configure ${sector.name.toLowerCase()} for your project. Sol OS manages all provider accounts - just pick your deploy bundle and I'll handle the rest.`,
     },
   ]);
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
+  // Get provider assignments from each bundle for this sector
+  const bundleAssignments = deployBundles.map(bundle => ({
+    bundleName: bundle.name,
+    bundleTier: bundle.id,
+    price: bundle.price + bundle.priceNote,
+    provider: bundle.providers.find(p => p.sectorId === sector.id),
+  })).filter(b => b.provider);
+
   // Reset state when sector changes
   useEffect(() => {
-    setSelectedProvider(null);
     setMessages([
       {
         role: 'assistant',
-        content: `I'm your ${sector.name} agent. I can help you configure ${sector.name.toLowerCase()} for your project. Click a provider to start integration, or ask me anything.`,
+        content: `I'm your ${sector.name} agent. I can help you understand and configure ${sector.name.toLowerCase()} for your project. Sol OS manages all provider accounts - just pick your deploy bundle and I'll handle the rest.`,
       },
     ]);
     setInputValue('');
@@ -61,27 +68,6 @@ export default function TechDetailView({ sector }: TechDetailViewProps) {
 
   const addMessage = (msg: ChatMessage) => {
     setMessages((prev) => [...prev, msg]);
-  };
-
-  const handleProviderClick = (provider: typeof sector.providers[0]) => {
-    setSelectedProvider(provider.id);
-
-    const userMsg = `Connect ${provider.name} for ${sector.name}. ${provider.description}. Price: ${provider.price}`;
-    addMessage({ role: 'user', content: userMsg });
-
-    setTimeout(() => {
-      addMessage({
-        role: 'assistant',
-        content: `Starting ${provider.name} integration for ${sector.name}...\n\n✓ Checking compatibility\n✓ Preparing configuration\n⟳ Connecting to ${provider.name}...`,
-      });
-    }, 1000);
-
-    setTimeout(() => {
-      addMessage({
-        role: 'assistant',
-        content: `${provider.name} integration initiated. I'll handle the setup automatically. You can monitor progress in the tasks section.`,
-      });
-    }, 3000);
   };
 
   const handleSendMessage = () => {
@@ -106,24 +92,21 @@ export default function TechDetailView({ sector }: TechDetailViewProps) {
       if (prompt === 'Set up automatically') {
         addMessage({
           role: 'assistant',
-          content: `I can automatically configure ${sector.name.toLowerCase()} for your project. I'll select the best provider based on your project requirements and handle all the setup steps. Would you like me to proceed?`,
+          content: `${sector.name} will be configured automatically when you deploy. Sol OS manages the provider account and handles all setup steps - no action needed from you.\n\nJust click "Deploy" in the top bar and choose your bundle. Each bundle includes a ${sector.name.toLowerCase()} provider optimized for that tier.`,
         });
-      } else if (prompt === 'Compare providers') {
-        const providerList = sector.providers
-          .map(
-            (p) =>
-              `• ${p.name} (${p.tier}) — ${p.price}${p.recommended ? ' ★ Recommended' : ''}`
-          )
+      } else if (prompt === 'What does this do?') {
+        const providerList = bundleAssignments
+          .map(b => `• ${b.bundleName}: ${b.provider!.providerName} - ${b.provider!.description}`)
           .join('\n');
         addMessage({
           role: 'assistant',
-          content: `Here's a comparison of available providers for ${sector.name}:\n\n${providerList || 'No providers available yet.'}\n\nWould you like more details on any of these?`,
+          content: `${sector.description}\n\nHere's what's included in each bundle:\n\n${providerList || 'No providers configured yet.'}\n\nSol OS manages all accounts - you never need to sign up with any provider directly.`,
         });
       } else if (prompt === 'Check requirements') {
         const completed = sector.tasks.filter((t) => t.completed).length;
         addMessage({
           role: 'assistant',
-          content: `${sector.name} requirements status: ${completed}/${sector.tasks.length} tasks completed.\n\n${sector.tasks.map((t) => `${t.completed ? '✓' : '○'} ${t.label}`).join('\n')}\n\nWould you like me to help with any incomplete tasks?`,
+          content: `${sector.name} status: ${completed}/${sector.tasks.length} tasks completed.\n\n${sector.tasks.map((t) => `${t.completed ? '✓' : '○'} ${t.label}`).join('\n')}\n\nAll auto tasks will be handled during deployment. No manual action required - Sol OS takes care of it.`,
         });
       }
     }, 1000);
@@ -137,7 +120,7 @@ export default function TechDetailView({ sector }: TechDetailViewProps) {
 
   return (
     <div className="flex h-full w-full gap-6 p-8">
-      {/* Left Column — Sector Info, Tasks, Providers */}
+      {/* Left Column - Sector Info, Tasks, Bundle Providers */}
       <div className="flex flex-1 flex-col overflow-y-auto pr-2">
         {/* Header */}
         <div className="mb-6">
@@ -166,10 +149,19 @@ export default function TechDetailView({ sector }: TechDetailViewProps) {
           </p>
         </div>
 
-        {/* Info Card wrapping Tasks */}
+        {/* Managed by Sol badge */}
+        <div className="mb-6 flex items-center gap-2 rounded-lg bg-accent/5 border border-accent/15 px-4 py-3">
+          <Lock className="h-3.5 w-3.5 text-accent" />
+          <p className="text-xs text-text-secondary">
+            <span className="font-medium text-accent">Managed by Sol OS</span>
+            {' '}- Provider account and configuration handled automatically
+          </p>
+        </div>
+
+        {/* Tasks Card */}
         <div className="mb-6 rounded-xl border border-border bg-bg-card p-5">
           <h2 className="font-heading mb-3 text-sm font-semibold uppercase tracking-wider text-text-muted">
-            Tasks
+            Setup Tasks
           </h2>
           <div className="divide-y divide-border-subtle">
             {sector.tasks.map((task) => (
@@ -195,13 +187,13 @@ export default function TechDetailView({ sector }: TechDetailViewProps) {
                   {task.label}
                 </span>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs capitalize ${
+                  className={`rounded-full px-2 py-0.5 text-xs ${
                     task.automation === 'auto'
-                      ? 'bg-status-green/20 text-status-green'
+                      ? 'bg-accent/10 text-accent'
                       : 'bg-bg-elevated text-text-muted'
                   }`}
                 >
-                  {task.automation}
+                  {task.automation === 'auto' ? 'Sol handles it' : 'manual'}
                 </span>
               </div>
             ))}
@@ -213,63 +205,62 @@ export default function TechDetailView({ sector }: TechDetailViewProps) {
           </div>
         </div>
 
-        {/* Providers Section */}
+        {/* Bundle Provider Assignments */}
         <div>
           <h2 className="font-heading mb-3 text-sm font-semibold uppercase tracking-wider text-text-muted">
-            Providers
+            Provider by Bundle
           </h2>
-          <div className="space-y-3">
-            {sector.providers.map((provider) => {
-              const isSelected = selectedProvider === provider.id;
-              return (
-                <button
-                  key={provider.id}
-                  type="button"
-                  onClick={() => handleProviderClick(provider)}
-                  className={`w-full cursor-pointer rounded-xl border p-4 text-left transition-colors hover:border-accent ${
-                    isSelected
-                      ? 'border-accent bg-accent/5'
-                      : 'border-border bg-bg-card'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
+          <div className="space-y-2.5">
+            {bundleAssignments.map((assignment) => (
+              <div
+                key={assignment.bundleTier}
+                className={`rounded-xl border p-4 ${
+                  assignment.bundleTier === 'pro'
+                    ? 'border-accent/30 bg-accent/5'
+                    : 'border-border bg-bg-card'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                      assignment.bundleTier === 'pro' ? 'bg-accent/15 text-accent' :
+                      assignment.bundleTier === 'scale' ? 'bg-bg-elevated text-text-secondary' :
+                      'bg-bg-elevated text-text-muted'
+                    }`}>
+                      <Sparkles className="h-4 w-4" />
+                    </div>
+                    <div>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-text">
-                          {provider.name}
-                        </p>
-                        {provider.recommended && (
+                        <span className="text-sm font-medium text-text">{assignment.provider!.providerName}</span>
+                        {assignment.bundleTier === 'pro' && (
                           <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-medium text-accent">
                             Recommended
                           </span>
                         )}
                       </div>
-                      <p className="mt-0.5 text-xs text-text-muted">
-                        {provider.description}
-                      </p>
-                    </div>
-                    <div className="ml-4 flex flex-col items-end gap-1">
-                      <span className="text-sm font-medium text-text">
-                        {provider.price}
-                      </span>
-                      <span className="rounded bg-bg-hover px-2 py-0.5 text-[10px] capitalize text-text-muted">
-                        {provider.tier}
-                      </span>
+                      <p className="text-xs text-text-muted">{assignment.provider!.description}</p>
                     </div>
                   </div>
-                </button>
-              );
-            })}
-            {sector.providers.length === 0 && (
-              <p className="py-4 text-center text-sm text-text-muted">
-                No providers available.
-              </p>
+                  <div className="flex flex-col items-end gap-0.5">
+                    <span className="text-xs font-medium text-text">{assignment.bundleName}</span>
+                    <span className="text-[11px] text-text-muted">{assignment.price}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {bundleAssignments.length === 0 && (
+              <div className="rounded-xl border border-border-subtle bg-bg-card p-4 text-center">
+                <p className="text-sm text-text-muted">
+                  Not included in current bundles - available as add-on
+                </p>
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Right Column — Agent Chat Panel */}
+      {/* Right Column - Agent Chat Panel */}
       <div className="flex w-[380px] shrink-0 flex-col rounded-xl border border-border bg-bg-card">
         {/* Chat Header */}
         <div className="flex items-center gap-3 rounded-t-xl border-b border-border bg-bg-card px-4 py-3">
@@ -278,9 +269,9 @@ export default function TechDetailView({ sector }: TechDetailViewProps) {
           </div>
           <div>
             <h3 className="font-heading text-sm font-semibold text-text">
-              Ask the {sector.name} Agent
+              {sector.name} Agent
             </h3>
-            <p className="text-[11px] text-text-muted">Online</p>
+            <p className="text-[11px] text-text-muted">Managed by Sol OS</p>
           </div>
         </div>
 

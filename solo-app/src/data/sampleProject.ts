@@ -695,7 +695,7 @@ export const sampleProject: Project = {
     { id: 'ri-3', label: 'Page structure analyzed', description: 'All 10 pages and their sections have been identified and mapped', status: 'complete', sector: 'sector-cms', automation: 'automated' },
     { id: 'ri-4', label: 'SEO audit complete', description: 'Meta tags scanned; 4 pages need attention', status: 'in-progress', sector: 'sector-seo', automation: 'automated' },
     { id: 'ri-5', label: 'Media assets audited', description: '14 assets analyzed; 2 images need optimization', status: 'complete', sector: 'sector-media', automation: 'automated' },
-    { id: 'ri-6', label: 'Hosting provider selected', description: 'No hosting provider connected yet — required before launch', status: 'blocked', sector: 'sector-hosting', automation: 'guided' },
+    { id: 'ri-6', label: 'Hosting provider selected', description: 'No hosting provider connected yet - required before launch', status: 'blocked', sector: 'sector-hosting', automation: 'guided' },
     { id: 'ri-7', label: 'Custom domain configured', description: 'Register or connect a custom domain for your site', status: 'not-started', sector: 'sector-domain', automation: 'guided' },
     { id: 'ri-8', label: 'SSL certificate provisioned', description: 'HTTPS needs to be enabled before launch', status: 'not-started', sector: 'sector-security', automation: 'automated' },
     { id: 'ri-9', label: 'Analytics installed', description: 'No analytics tracking configured yet', status: 'not-started', sector: 'sector-analytics', automation: 'guided' },

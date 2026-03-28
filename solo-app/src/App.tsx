@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import type { AppView, MainView, ThemeMode, Page, TechSector, ContentType, ContentItem, ChatMessage, Project, UploadResult } from './data/types';
 import { sampleProject, analysisSteps } from './data/sampleProject';
@@ -37,6 +37,7 @@ export default function App() {
   const [setupComplete, setSetupComplete] = useState(false);
   const [showLaunchReadiness, setShowLaunchReadiness] = useState(false);
   const [editItemId, setEditItemId] = useState<string | null>(null);
+  const [previewVersion, setPreviewVersion] = useState(0); // Bumped after CMS sync + rebuild
 
   // Derive activeContentType from mutable state
   const activeContentType = contentTypes.find(ct => ct.id === activeContentTypeId) ?? contentTypes[0];
@@ -70,7 +71,7 @@ export default function App() {
     setMainView('tech-detail');
   };
 
-  // Import handlers — dual mode
+  // Import handlers - dual mode
   const handleImport = (result: UploadResult) => {
     setUploadResult(result);
     setView('analyzing');
@@ -94,11 +95,51 @@ export default function App() {
     setView('dashboard');
   };
 
-  // CMS data mutation — single source of truth
+  // CMS → source code sync for imported projects
+  const prevContentTypesRef = useRef(contentTypes);
+  useEffect(() => { prevContentTypesRef.current = contentTypes; }, [contentTypes]);
+
+  const syncCMSToSource = useCallback(async (updated: ContentType[], prev: ContentType[]) => {
+    if (!isImported) return;
+
+    // Compute field-level diffs
+    const changes: { contentTypeId: string; itemId: string; fieldName: string; newValue: string }[] = [];
+    for (const ct of updated) {
+      const prevCt = prev.find(p => p.id === ct.id);
+      if (!prevCt) continue;
+      for (const item of ct.items) {
+        const prevItem = prevCt.items.find(p => p.id === item.id);
+        if (!prevItem) continue;
+        for (const [fieldName, value] of Object.entries(item.data)) {
+          if (typeof value === 'string' && value !== prevItem.data[fieldName]) {
+            changes.push({ contentTypeId: ct.id, itemId: item.id, fieldName, newValue: value });
+          }
+        }
+      }
+    }
+    if (changes.length === 0) return;
+
+    try {
+      const res = await fetch('/api/source/cms-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ changes }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        // Rebuild is done, bump version so PageEditor reloads iframe
+        setPreviewVersion(v => v + 1);
+      }
+    } catch { /* server offline */ }
+  }, [isImported]);
+
+  // CMS data mutation - single source of truth
   const handleContentItemsChange = (typeId: string, items: ContentItem[]) => {
-    setContentTypes(prev =>
-      prev.map(ct => ct.id === typeId ? { ...ct, items } : ct)
-    );
+    const prev = prevContentTypesRef.current;
+    const updated = prev.map(ct => ct.id === typeId ? { ...ct, items } : ct);
+    setContentTypes(updated);
+    // Sync changes to source files (async, non-blocking)
+    syncCMSToSource(updated, prev);
   };
 
   // Click dynamic CMS element in preview → open CMS item editor
@@ -172,6 +213,7 @@ export default function App() {
               contentTypes={contentTypes}
               onOpenCMSItem={handleOpenCMSItem}
               isImported={isImported}
+              previewVersion={previewVersion}
             />
           )}
           {mainView === 'cms-table' && (

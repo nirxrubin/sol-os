@@ -133,3 +133,27 @@ export interface UploadResult {
   fileTree: string[];
   entryFile: string;
 }
+
+// ─── Deploy Bundles ──────────────────────────────────────────────
+// Sol OS acts as middleman - one Sol account manages all providers.
+// Clients pick a bundle (or customize), no individual provider accounts needed.
+
+export type BundleTier = 'starter' | 'pro' | 'scale';
+
+export interface BundleProvider {
+  sectorId: string;
+  sectorName: string;
+  providerName: string;
+  description: string;
+}
+
+export interface DeployBundle {
+  id: BundleTier;
+  name: string;
+  tagline: string;
+  price: string;
+  priceNote: string;
+  recommended?: boolean;
+  providers: BundleProvider[];
+  features: string[];
+}

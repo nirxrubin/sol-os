@@ -18,8 +18,10 @@ import {
 } from './engine/source.js';
 import { recordChanges, getChangelog, getChangelogSummary, getChangesSince } from './engine/changelog.js';
 import { uploadAsset } from './engine/assets.js';
-import { getProjectState, readAnalysis, readEdits, writeEdits, readCMS, writeCMS } from './state.js';
+import { getProjectState, setProjectState, readAnalysis, readEdits, writeEdits, readCMS, writeCMS } from './state.js';
 import type { PageEdits } from './state.js';
+import { buildProject } from './analyze/build.js';
+import { applySourceArrayEdits, type SourceArrayEdit as SourceArrEdit } from './engine/sourceArray.js';
 
 export const editsRouter = Router();
 
@@ -65,6 +67,11 @@ editsRouter.post('/source/edit', async (req, res) => {
   const succeeded = allResults.filter((r) => r.success).length;
   const failed = allResults.filter((r) => !r.success).length;
 
+  // For built projects, trigger async rebuild so preview updates
+  if (succeeded > 0 && state.buildNeeded) {
+    triggerRebuild(state.projectRoot);
+  }
+
   res.json({
     ok: succeeded > 0,
     succeeded,
@@ -96,20 +103,88 @@ editsRouter.post('/source/cms-sync', async (req, res) => {
     return;
   }
 
-  // Build bindings map: { [ctId]: { [itemId]: CMSBinding[] } }
+  // Separate changes into HTML-binding changes and source-array changes
+  const htmlChanges: CMSFieldChange[] = [];
+  const sourceArrayEdits: SourceArrEdit[] = [];
+
+  // Build bindings map for HTML: { [ctId]: { [itemId]: CMSBinding[] } }
   const bindingsMap: Record<string, Record<string, any[]>> = {};
+  // Build source bindings map: { [ctId]: { file, varName, items: { [itemId]: { itemIndex } } } }
+  const sourceBindingsMap: Record<string, any> = {};
+
   for (const ct of analysis.contentTypes) {
     if (ct.bindings) {
       bindingsMap[ct.id] = ct.bindings;
     }
+    if (ct.sourceBindings) {
+      sourceBindingsMap[ct.id] = ct.sourceBindings;
+    }
   }
 
-  const results = await applyCMSChanges(state.projectRoot, bindingsMap, changes);
-  await recordChanges(results, 'cms');
+  // Route each change to the right editor
+  for (const change of changes) {
+    const sourceBinding = sourceBindingsMap[change.contentTypeId];
+    if (sourceBinding?.items?.[change.itemId]) {
+      // This content type has source array bindings
+      const itemBinding = sourceBinding.items[change.itemId];
+      sourceArrayEdits.push({
+        file: sourceBinding.file,
+        varName: sourceBinding.varName,
+        itemIndex: itemBinding.itemIndex,
+        fieldName: change.fieldName,
+        newValue: change.newValue,
+      });
+    } else if (bindingsMap[change.contentTypeId]) {
+      // This content type has HTML DOM bindings
+      htmlChanges.push(change);
+    }
+  }
+
+  const allResults: any[] = [];
+
+  // Apply HTML binding changes
+  if (htmlChanges.length > 0) {
+    const htmlResults = await applyCMSChanges(state.projectRoot, bindingsMap, htmlChanges);
+    allResults.push(...htmlResults);
+  }
+
+  // Apply source array changes
+  if (sourceArrayEdits.length > 0) {
+    const sourceResults = await applySourceArrayEdits(state.projectRoot, sourceArrayEdits);
+    allResults.push(...sourceResults.map(r => ({
+      success: r.success,
+      changeId: r.changeId,
+      page: r.file,
+      selector: `${r.varName}[${r.itemIndex}].${r.fieldName}`,
+      editType: 'text' as const,
+      oldValue: r.oldValue,
+      newValue: r.newValue,
+      error: r.error,
+    })));
+
+    // For SPA projects, rebuild synchronously so the frontend can reload immediately
+    if (sourceResults.some(r => r.success) && state.buildNeeded) {
+      console.log('  Rebuilding project after CMS edits...');
+      try {
+        const buildResult = await buildProject(state.projectRoot, { force: true });
+        if (buildResult.success) {
+          setProjectState({ ...state, servePath: buildResult.servePath });
+          console.log('  Rebuild complete');
+        } else {
+          console.warn('  Rebuild failed:', buildResult.buildError?.slice(0, 200));
+        }
+      } catch (err) {
+        console.error('  Rebuild error:', err);
+      }
+    }
+  }
+
+  await recordChanges(allResults, 'cms');
 
   res.json({
-    ok: results.some((r) => r.success),
-    results,
+    ok: allResults.some((r: any) => r.success),
+    rebuilt: state.buildNeeded && allResults.some((r: any) => r.success),
+    results: allResults,
   });
 });
 
@@ -221,3 +296,34 @@ editsRouter.post('/cms', async (req, res) => {
   await writeCMS(req.body);
   res.json({ ok: true });
 });
+
+// ─── Debounced Rebuild for Built Projects ─────────────────────────
+// After source edits on React/Vite projects, rebuild so preview updates.
+
+let rebuildTimer: ReturnType<typeof setTimeout> | null = null;
+let isRebuilding = false;
+
+function triggerRebuild(projectRoot: string) {
+  if (rebuildTimer) clearTimeout(rebuildTimer);
+  rebuildTimer = setTimeout(async () => {
+    if (isRebuilding) return;
+    isRebuilding = true;
+    console.log('  Rebuilding project after edits...');
+    try {
+      const result = await buildProject(projectRoot, { force: true });
+      if (result.success) {
+        const state = getProjectState();
+        if (state) {
+          setProjectState({ ...state, servePath: result.servePath });
+        }
+        console.log('  Rebuild complete');
+      } else {
+        console.warn('  Rebuild failed:', result.buildError?.slice(0, 200));
+      }
+    } catch (err) {
+      console.error('  Rebuild error:', err);
+    } finally {
+      isRebuilding = false;
+    }
+  }, 2000); // 2s debounce to batch multiple edits
+}

@@ -11,6 +11,7 @@ interface PageEditorProps {
   contentTypes?: ContentType[];
   onOpenCMSItem?: (contentTypeId: string, itemId: string) => void;
   isImported?: boolean;
+  previewVersion?: number;
 }
 
 const seoStatusConfig: Record<
@@ -401,7 +402,7 @@ function gridColsClass(desktopCols: number, breakpoint: 'desktop' | 'tablet' | '
 
 // ─── Main Component ───────────────────────────────────────────────
 
-export default function PageEditor({ page, contentTypes, onOpenCMSItem, isImported }: PageEditorProps) {
+export default function PageEditor({ page, contentTypes, onOpenCMSItem, isImported, previewVersion }: PageEditorProps) {
   const seo = seoStatusConfig[page.seoStatus];
   const pageContent = pageContents.find((pc: PageContent) => pc.pageId === page.id);
 
@@ -422,17 +423,19 @@ export default function PageEditor({ page, contentTypes, onOpenCMSItem, isImport
   const iframePage = isImported ? page.path : undefined;
   const iframeEditor = useIframeEditor(iframeRef, iframePage, isImported ? contentTypes : undefined);
 
-  // Sync CMS changes → source files + iframe when contentTypes change
-  const prevContentTypesRef = useRef(contentTypes);
+  // Reload iframe after CMS sync + rebuild (previewVersion bumped by App.tsx)
   useEffect(() => {
-    if (isImported && contentTypes !== prevContentTypesRef.current) {
-      const prev = prevContentTypesRef.current;
-      prevContentTypesRef.current = contentTypes;
-      if (prev) {
-        iframeEditor.syncCMSToCanvas(contentTypes ?? [], prev);
-      }
+    if (!isImported || !previewVersion) return;
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    try {
+      iframe.contentWindow?.location.reload();
+    } catch {
+      const src = iframe.src;
+      iframe.src = '';
+      requestAnimationFrame(() => { iframe.src = src; });
     }
-  }, [contentTypes, isImported]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [previewVersion, isImported]);
 
   // Scroll to top & clear selection when page changes
   useEffect(() => {
@@ -1114,7 +1117,7 @@ export default function PageEditor({ page, contentTypes, onOpenCMSItem, isImport
           >
             <iframe
               ref={iframeRef}
-              src={`/preview${page.path === '/' ? '/index.html' : page.path.endsWith('.html') ? page.path : page.path + '.html'}`}
+              src={`/preview${page.path === '/' ? '/' : page.path}`}
               className="h-full w-full border-0"
               style={{
                 boxShadow: breakpoint !== 'desktop' ? '0 4px 24px -4px rgba(0,0,0,0.15)' : 'none',

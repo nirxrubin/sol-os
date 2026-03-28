@@ -25,13 +25,25 @@ interface CMSBinding {
   selector: string;
 }
 
+// Source-code array bindings for SPA projects
+interface SourceArrayBinding {
+  file: string;       // Relative path to source file
+  varName: string;    // Variable name (e.g., 'articles')
+  itemIndex: number;  // Index in the array
+}
+
 interface ContentType {
   id: string;
   name: string;
   fields: ContentField[];
   items: ContentItem[];
   linkedPages: string[];
-  bindings?: Record<string, CMSBinding[]>; // [itemId] → bindings for each field
+  bindings?: Record<string, CMSBinding[]>; // [itemId] -> bindings for each field
+  sourceBindings?: {
+    file: string;
+    varName: string;
+    items: Record<string, SourceArrayBinding>; // [itemId] -> source location
+  };
 }
 
 export async function analyzeContent(projectRoot: string, fileTree: string[]): Promise<ContentType[]> {
@@ -346,6 +358,9 @@ export async function analyzeContent(projectRoot: string, fileTree: string[]): P
   // ─── Scan for JSON/Markdown content ───────────────────────────
   await scanDataFiles(projectRoot, fileTree, contentTypes, now);
 
+  // ─── Scan source code for hardcoded data arrays (React/Vue/etc.) ─
+  await scanSourceDataArrays(projectRoot, fileTree, contentTypes, now);
+
   return contentTypes;
 }
 
@@ -415,6 +430,282 @@ async function scanDataFiles(
       }
     }
   }
+}
+
+// ─── Source Code Data Array Detection ─────────────────────────────
+// Scans .tsx/.jsx/.ts/.js files for hardcoded data arrays — the kind
+// of content that should be CMS-controlled (products, articles, FAQs, etc.)
+//
+// Detects patterns like:
+//   const articles = [ { title: '...', excerpt: '...' }, ... ];
+//   const products = [ { name: '...', price: 128 }, ... ];
+
+async function scanSourceDataArrays(
+  projectRoot: string,
+  fileTree: string[],
+  contentTypes: ContentType[],
+  now: string,
+): Promise<void> {
+  const sourceFiles = fileTree.filter(f =>
+    /\.(tsx?|jsx?)$/.test(f) &&
+    !f.includes('node_modules') &&
+    !f.includes('.d.ts') &&
+    !f.includes('/ui/') && // Skip UI component library files
+    !f.includes('test') &&
+    !f.includes('spec')
+  );
+
+  for (const file of sourceFiles) {
+    let content: string;
+    try {
+      content = await fs.readFile(path.join(projectRoot, file), 'utf-8');
+    } catch { continue; }
+
+    // Find const/let/var declarations of arrays with object literals
+    // Pattern: const NAME = [ { key: value, ... }, { key: value, ... } ];
+    const arrayPattern = /(?:const|let|var)\s+(\w+)\s*(?::\s*[^=]+)?\s*=\s*\[/g;
+    let match;
+
+    while ((match = arrayPattern.exec(content)) !== null) {
+      const varName = match[1];
+      const startIdx = match.index + match[0].length - 1; // Position of [
+
+      // Extract the array content (balanced bracket matching)
+      const arrayContent = extractBalancedBrackets(content, startIdx);
+      if (!arrayContent || arrayContent.length < 20) continue;
+
+      // Try to parse as JSON (with some cleanup for TS/JS syntax)
+      const items = parseJSArrayToItems(arrayContent, varName, now);
+      if (items.length < 2) continue; // Need at least 2 items to be a "collection"
+
+      // Skip navigation/config/UI arrays — not CMS content
+      const skipPatterns = [
+        'nav', 'menu', 'link', 'route', 'tab', 'breadcrumb',
+        'category', 'categories', 'filter', 'option', 'config', 'setting',
+        'column', 'header', 'sidebar', 'breakpoint',
+      ];
+      if (skipPatterns.some(p => varName.toLowerCase().includes(p))) continue;
+
+      // Determine content type from variable name
+      const typeName = inferContentTypeName(varName);
+      const typeId = `ct-${varName.toLowerCase()}`;
+
+      // Skip if we already have a content type with similar name
+      const existingType = contentTypes.find(ct =>
+        ct.id === typeId ||
+        ct.name.toLowerCase() === typeName.toLowerCase() ||
+        ct.name.toLowerCase().includes(varName.toLowerCase())
+      );
+      if (existingType) continue;
+
+      // Build fields from the items
+      const fieldSet = new Map<string, unknown>();
+      for (const item of items) {
+        for (const [key, value] of Object.entries(item.data)) {
+          if (!fieldSet.has(key)) fieldSet.set(key, value);
+        }
+      }
+
+      const fields: ContentField[] = Array.from(fieldSet.entries()).map(([name, sampleValue]) => ({
+        id: `f-${name}`,
+        name,
+        type: inferFieldType(name, sampleValue),
+        required: items.every(item => item.data[name] != null && item.data[name] !== ''),
+      }));
+
+      if (fields.length < 2) continue; // Too simple to be CMS content
+
+      // Determine linked pages from file location
+      const linkedPage = file.replace(/^src\/pages\//, '').replace(/\.(tsx?|jsx?)$/, '').toLowerCase();
+
+      // Build source bindings: map each item to its source location
+      const sourceItems: Record<string, SourceArrayBinding> = {};
+      items.forEach((item, idx) => {
+        sourceItems[item.id] = { file, varName, itemIndex: idx };
+      });
+
+      contentTypes.push({
+        id: typeId,
+        name: typeName,
+        fields,
+        items,
+        linkedPages: [linkedPage],
+        sourceBindings: { file, varName, items: sourceItems },
+      });
+
+      console.log(`  Found source data array: ${varName} (${items.length} items) in ${file}`);
+    }
+  }
+}
+
+/**
+ * Extract balanced brackets content starting from position of opening bracket.
+ */
+function extractBalancedBrackets(content: string, start: number): string | null {
+  let depth = 0;
+  let inString = false;
+  let stringChar = '';
+  let escaped = false;
+
+  for (let i = start; i < content.length && i < start + 10000; i++) {
+    const ch = content[i];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (ch === '\\') {
+      escaped = true;
+      continue;
+    }
+
+    if (inString) {
+      if (ch === stringChar) inString = false;
+      continue;
+    }
+
+    if (ch === '"' || ch === "'" || ch === '`') {
+      inString = true;
+      stringChar = ch;
+      continue;
+    }
+
+    if (ch === '[' || ch === '{') depth++;
+    if (ch === ']' || ch === '}') {
+      depth--;
+      if (depth === 0) {
+        return content.substring(start, i + 1);
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Parse a JS/TS array literal into content items.
+ * Handles: string values, number values, template literals (simplified).
+ */
+function parseJSArrayToItems(arrayStr: string, varName: string, now: string): ContentItem[] {
+  const items: ContentItem[] = [];
+
+  // Clean up JS/TS syntax to be JSON-parseable
+  let cleaned = arrayStr
+    // Remove trailing commas before ] or }
+    .replace(/,\s*([\]}])/g, '$1')
+    // Convert single-quoted strings to double-quoted
+    .replace(/'/g, '"')
+    // Remove template literals and replace with their content
+    .replace(/`([^`]*)`/g, '"$1"')
+    // Remove type annotations
+    .replace(/as\s+\w+/g, '')
+    // Handle unquoted keys
+    .replace(/(\{[\s,]*|,\s*)(\w+)\s*:/g, '$1"$2":')
+    // Remove JSX/component references as values (e.g., icon: <SomeIcon />)
+    .replace(/"?\w+"?\s*:\s*<[^>]+\/>/g, '')
+    // Remove function references
+    .replace(/"?\w+"?\s*:\s*\([^)]*\)\s*=>\s*[^,}]+/g, '')
+    // Remove import references (e.g., image: importedVar)
+    .replace(/"?\w+"?\s*:\s*(?!["{\[\dtfn-])\w+\s*([,}])/g, '$1');
+
+  try {
+    const parsed = JSON.parse(cleaned);
+    if (!Array.isArray(parsed)) return [];
+
+    for (const obj of parsed) {
+      if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) continue;
+
+      // Filter out non-string/number values
+      const data: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(obj)) {
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+          data[key] = value;
+        }
+      }
+
+      if (Object.keys(data).length >= 2) {
+        items.push({
+          id: `${varName}-${items.length + 1}`,
+          data,
+          status: 'published',
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    }
+  } catch {
+    // JSON parse failed — try a more lenient approach
+    // Extract individual object literals
+    const objectPattern = /\{([^{}]+)\}/g;
+    let objMatch;
+    while ((objMatch = objectPattern.exec(arrayStr)) !== null) {
+      const data: Record<string, unknown> = {};
+      const props = objMatch[1];
+
+      // Extract key: 'value' or key: "value" or key: number
+      const propPattern = /(\w+)\s*:\s*(?:'([^']*)'|"([^"]*)"|(\d+(?:\.\d+)?)|`([^`]*)`)/g;
+      let propMatch;
+      while ((propMatch = propPattern.exec(props)) !== null) {
+        const key = propMatch[1];
+        const value = propMatch[2] ?? propMatch[3] ?? propMatch[5] ?? (propMatch[4] ? Number(propMatch[4]) : null);
+        if (value !== null) data[key] = value;
+      }
+
+      if (Object.keys(data).length >= 2) {
+        items.push({
+          id: `${varName}-${items.length + 1}`,
+          data,
+          status: 'published',
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    }
+  }
+
+  return items;
+}
+
+/**
+ * Infer a human-readable content type name from a variable name.
+ */
+function inferContentTypeName(varName: string): string {
+  const nameMap: Record<string, string> = {
+    articles: 'Articles',
+    posts: 'Blog Posts',
+    blogPosts: 'Blog Posts',
+    products: 'Products',
+    items: 'Items',
+    team: 'Team Members',
+    teamMembers: 'Team Members',
+    members: 'Team Members',
+    testimonials: 'Testimonials',
+    reviews: 'Reviews',
+    faqs: 'FAQs',
+    questions: 'FAQs',
+    services: 'Services',
+    features: 'Features',
+    projects: 'Projects',
+    portfolio: 'Portfolio',
+    categories: 'Categories',
+    events: 'Events',
+    partners: 'Partners',
+    clients: 'Clients',
+    verses: 'Verses',
+    quotes: 'Quotes',
+    gallery: 'Gallery',
+    pricing: 'Pricing Plans',
+    plans: 'Pricing Plans',
+  };
+
+  const lower = varName.toLowerCase();
+  if (nameMap[lower]) return nameMap[lower];
+
+  // CamelCase → space-separated, capitalize
+  return varName
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, c => c.toUpperCase())
+    .trim();
 }
 
 function inferFieldType(name: string, value: unknown): ContentField['type'] {

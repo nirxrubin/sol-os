@@ -15,10 +15,13 @@ export function previewMiddleware() {
       return;
     }
 
-    // Recreate static handler if project root changed
-    if (state.projectRoot !== cachedRoot) {
-      cachedRoot = state.projectRoot;
-      staticHandler = express.static(state.projectRoot, {
+    // Use servePath (built output) if available, fall back to projectRoot
+    const serveRoot = state.servePath || state.projectRoot;
+
+    // Recreate static handler if serve root changed
+    if (serveRoot !== cachedRoot) {
+      cachedRoot = serveRoot;
+      staticHandler = express.static(serveRoot, {
         extensions: ['html'],
         index: 'index.html',
       });
@@ -26,10 +29,16 @@ export function previewMiddleware() {
 
     // Try static file serving first
     staticHandler!(req, res, () => {
-      // Fallback: serve index.html for SPA routing
-      const indexPath = path.join(state.projectRoot, 'index.html');
+      // Fallback: serve index.html for SPA routing (React Router, etc.)
+      const indexPath = path.resolve(serveRoot, 'index.html');
       if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
+        // Read and send manually to avoid sendFile path resolution issues
+        try {
+          const html = fs.readFileSync(indexPath, 'utf-8');
+          res.type('html').send(html);
+        } catch (err) {
+          next(err);
+        }
         return;
       }
       next();

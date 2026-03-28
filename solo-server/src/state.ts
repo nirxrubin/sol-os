@@ -10,10 +10,14 @@ export function getWorkspacePath(): string {
 
 // ─── Project State (persisted to disk) ──────────────────────────
 interface ProjectState {
-  projectRoot: string;
+  projectRoot: string;   // Source root (original extracted files)
+  servePath: string;     // Path to serve for preview (may be dist/ after build)
   fileTree: string[];
   fileCount: number;
   entryFile: string;
+  buildNeeded?: boolean;
+  buildSuccess?: boolean;
+  buildError?: string;
 }
 
 const STATE_FILE = path.join(WORKSPACE, '.sol-state.json');
@@ -25,7 +29,12 @@ let analysisStatus: 'idle' | 'uploading' | 'analyzing' | 'complete' | 'error' = 
 // Restore state from disk on module load
 try {
   if (existsSync(STATE_FILE)) {
-    projectState = JSON.parse(readFileSync(STATE_FILE, 'utf-8'));
+    const restored = JSON.parse(readFileSync(STATE_FILE, 'utf-8'));
+    // Ensure servePath exists (backward compat with older state files)
+    if (!restored.servePath) {
+      restored.servePath = restored.projectRoot;
+    }
+    projectState = restored;
     // If analysis file also exists, mark as complete
     if (existsSync(ANALYSIS_FILE)) {
       analysisStatus = 'complete';
