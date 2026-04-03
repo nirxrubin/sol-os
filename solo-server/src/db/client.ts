@@ -1,16 +1,16 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Lazy singleton — env vars are read at first call, not at import time
+let _db: SupabaseClient | null = null;
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in environment');
+function getDb(): SupabaseClient {
+  if (_db) return _db;
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+  _db = createClient(url, key, { auth: { persistSession: false } });
+  return _db;
 }
-
-// Service role client — server-side only, never exposed to browser
-export const db = createClient(supabaseUrl, supabaseKey, {
-  auth: { persistSession: false },
-});
 
 // ─── Project helpers ──────────────────────────────────────────────────────────
 
@@ -20,7 +20,7 @@ export async function createProject(data: {
   projectRoot: string;
   workspaceId?: string;
 }) {
-  const { data: project, error } = await db
+  const { data: project, error } = await getDb()
     .from('projects')
     .insert({
       workspace_id: data.workspaceId ?? null,
@@ -38,7 +38,7 @@ export async function createProject(data: {
 }
 
 export async function updateProject(id: string, updates: Record<string, unknown>) {
-  const { error } = await db
+  const { error } = await getDb()
     .from('projects')
     .update(updates)
     .eq('id', id);
@@ -47,7 +47,7 @@ export async function updateProject(id: string, updates: Record<string, unknown>
 }
 
 export async function getProject(id: string) {
-  const { data, error } = await db
+  const { data, error } = await getDb()
     .from('projects')
     .select('*, content_types(*)')
     .eq('id', id)
@@ -79,7 +79,7 @@ export async function upsertContentTypes(projectId: string, contentTypes: {
     items: ct.items,
   }));
 
-  const { error } = await db
+  const { error } = await getDb()
     .from('content_types')
     .upsert(rows, { onConflict: 'id' });
 
@@ -93,7 +93,7 @@ export async function createDeployRecord(data: {
   liveUrl?: string;
   error?: string;
 }) {
-  const { data: record, error } = await db
+  const { data: record, error } = await getDb()
     .from('deploy_records')
     .insert({
       project_id: data.projectId,

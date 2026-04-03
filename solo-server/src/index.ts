@@ -1,4 +1,11 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// Load .env relative to this file's location, not process.cwd()
+const __dirname = dirname(fileURLToPath(import.meta.url));
+config({ path: resolve(__dirname, '../.env') });
+
 import express from 'express';
 import cors from 'cors';
 import { uploadRouter } from './upload.js';
@@ -11,7 +18,8 @@ import { getWorkspacePath } from './state.js';
 const app = express();
 const PORT = 3001;
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+// Allow any localhost port (5173, 5174, etc.)
+app.use(cors({ origin: /^http:\/\/localhost:\d+$/ }));
 app.use(express.json({ limit: '10mb' }));
 
 // API routes
