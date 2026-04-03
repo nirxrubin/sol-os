@@ -6,6 +6,8 @@ import path from 'path';
 import { Parse } from 'unzipper';
 import { getWorkspacePath, setProjectState, setAnalysisStatus } from './state.js';
 import { analyzeProject } from './analyze/index.js';
+import { createProject, updateProject, upsertContentTypes } from './db/client.js';
+import { sendAnalysisReady } from './email/client.js';
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200 * 1024 * 1024 } });
 
@@ -119,17 +121,70 @@ uploadRouter.post('/upload', upload.single('file'), async (req, res) => {
     setProjectState({ projectRoot, servePath: projectRoot, fileTree, fileCount: fileTree.length, entryFile });
     setAnalysisStatus('analyzing');
 
+    // Extract notification email and project name from request (optional)
+    const notifyEmail = (req.body?.email as string | undefined) ?? null;
+    const isLargeProject = fileTree.length > 50;
+
+    // Create DB record
+    let dbProjectId: string | null = null;
+    try {
+      const slug = path.basename(projectRoot).toLowerCase().replace(/[^a-z0-9]/g, '-');
+      const dbProject = await createProject({ name: slug, slug, projectRoot });
+      dbProjectId = dbProject.id;
+    } catch (err) {
+      // DB unavailable - continue without persistence, don't block upload
+      console.warn('DB project creation failed (non-fatal):', err);
+    }
+
     // Respond immediately, run analysis async
-    res.json({ fileCount: fileTree.length, fileTree, entryFile, status: 'analyzing' });
+    res.json({ fileCount: fileTree.length, fileTree, entryFile, status: 'analyzing', dbProjectId });
 
     // Run autonomous analysis in background
     try {
-      await analyzeProject(projectRoot, fileTree);
+      const project = await analyzeProject(projectRoot, fileTree) as any;
       setAnalysisStatus('complete');
       console.log('Analysis complete');
+
+      // Persist manifest + content types to DB
+      if (dbProjectId && project) {
+        try {
+          await updateProject(dbProjectId, {
+            name: project.name,
+            slug: project.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+            status: 'ready',
+            framework: project.framework ?? 'unknown',
+            serve_path: project.servePath ?? projectRoot,
+            manifest: project,
+            build_success: project.buildSuccess ?? null,
+            build_error: project.buildError ?? null,
+          });
+
+          if (project.contentTypes?.length > 0) {
+            await upsertContentTypes(dbProjectId, project.contentTypes.map((ct: { id: string; name: string; fields: unknown[]; items: unknown[]; sourceBindings?: { file: string; varName: string } }) => ({
+              id: ct.id,
+              name: ct.name,
+              slug: ct.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+              sourceFile: ct.sourceBindings?.file,
+              sourceVar: ct.sourceBindings?.varName,
+              fields: ct.fields ?? [],
+              items: ct.items ?? [],
+            })));
+          }
+        } catch (err) {
+          console.warn('DB persist failed (non-fatal):', err);
+        }
+      }
+
+      // Send email notification if provided
+      if (notifyEmail && (isLargeProject || true)) {
+        await sendAnalysisReady(notifyEmail, project?.name ?? 'your project');
+      }
     } catch (err) {
       console.error('Analysis failed:', err);
       setAnalysisStatus('error');
+      if (dbProjectId) {
+        updateProject(dbProjectId, { status: 'error', build_error: String(err) }).catch(() => {});
+      }
     }
   } catch (err) {
     console.error('Upload failed:', err);

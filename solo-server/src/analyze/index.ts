@@ -110,6 +110,7 @@ export async function analyzeProject(projectRoot: string, fileTree: string[]) {
 
   await writeAnalysis(project);
   console.log('Analysis written to .sol-analysis.json');
+  return project;
 }
 
 async function deriveProjectName(projectRoot: string, pages: { name: string; path: string }[]): Promise<string> {

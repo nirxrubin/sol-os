@@ -135,14 +135,14 @@ export default function AnalysisView({ steps: initialSteps, onComplete, polling,
   }, [completedCount, steps.length, onComplete, polling]);
 
   return (
-    <div className="flex h-full w-full items-center justify-center bg-bg">
+    <div className="flex h-screen w-full items-center justify-center bg-bg">
       <div className="mx-auto flex w-full max-w-lg flex-col items-center px-6">
         {/* Heading */}
         <motion.h2
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="mt-8 font-heading text-3xl font-medium text-text"
+          className="font-heading text-3xl font-medium text-text"
         >
           Analyzing your project
         </motion.h2>

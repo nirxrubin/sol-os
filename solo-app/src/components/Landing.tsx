@@ -8,16 +8,17 @@ interface LandingProps {
 }
 
 const features = [
-  { icon: Globe, label: '10 Sector Nodes' },
-  { icon: Sparkles, label: 'AI Agents' },
-  { icon: Shield, label: 'Security First' },
-  { icon: BarChart3, label: 'Readiness Score' },
+  { icon: Globe, label: 'Custom Domain' },
+  { icon: Sparkles, label: 'SEO & Analytics' },
+  { icon: Shield, label: 'SSL Included' },
+  { icon: BarChart3, label: 'Launch Checklist' },
 ];
 
 export default function Landing({ onImport }: LandingProps) {
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(async (file: File) => {
@@ -32,6 +33,7 @@ export default function Landing({ onImport }: LandingProps) {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      if (email.trim()) formData.append('email', email.trim());
 
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       if (!res.ok) {
@@ -82,22 +84,16 @@ export default function Landing({ onImport }: LandingProps) {
 
       {/* Center content */}
       <div className="flex flex-1 flex-col items-center justify-center px-6">
-        {/* Pill chip */}
-        <div className="animate-fade-up flex items-center gap-2 rounded-full border border-border px-4 py-1.5">
-          <span className="text-[13px] text-text-secondary">AI-Native Launch Platform</span>
-        </div>
-
         {/* Main headline */}
         <h1 className="animate-fade-up-1 mt-8 text-center font-heading text-4xl font-light leading-tight text-text md:text-5xl lg:text-6xl">
-          From prototype to
+          Upload a site.
           <br />
-          <span className="text-accent">production</span>, intelligently.
+          <span className="text-accent">Launch</span> it.
         </h1>
 
         {/* Subtitle */}
         <p className="animate-fade-up-2 mx-auto mt-5 max-w-xl text-center text-base text-text-secondary">
-          Upload your project. Get an intelligent launch canvas with every sector analyzed,
-          configured, and ready for deployment.
+          Drop a .zip of your project. Edit content, connect a domain, and go live.
         </p>
 
         {/* Upload area */}
@@ -129,9 +125,22 @@ export default function Landing({ onImport }: LandingProps) {
             {uploading ? 'Uploading & extracting...' : 'Drop your project .zip here'}
           </p>
           <p className="mt-2 text-sm text-text-secondary">
-            {uploading ? 'This may take a moment' : 'Or click to browse - static sites, built SPAs, exported projects'}
+            {uploading ? 'This may take a moment' : 'Or click to browse'}
           </p>
         </button>
+
+        {/* Email for notification on long analysis */}
+        {!uploading && (
+          <div className="animate-fade-up-3 mt-4 w-full max-w-lg">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email me when it's ready (optional)"
+              className="w-full rounded-lg border border-border bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none"
+            />
+          </div>
+        )}
 
         {error && (
           <p className="mt-4 text-sm text-status-red">{error}</p>

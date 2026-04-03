@@ -40,7 +40,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const [pagesExpanded, setPagesExpanded] = useState(true);
   const [contentExpanded, setContentExpanded] = useState(true);
-  const [techExpanded, setTechExpanded] = useState(true);
+  const [techExpanded, setTechExpanded] = useState(false);
 
   return (
     <aside className="flex h-full w-52 shrink-0 flex-col border-r border-border bg-bg-sidebar overflow-y-auto">
