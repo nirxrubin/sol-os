@@ -239,7 +239,7 @@ interface ProjectState {
 
 1. Lovable project (vite-react): uploads, builds, previews pixel-perfect, canvas editing works with stable selectors, CMS fields editable and persisted to source
 2. Next.js project (nextjs-app-router): uploads, static export patch applied automatically, every page previews correctly, CMS fields editable
-3. Base44 project: detected, builds correctly, CMS extracts from rendered HTML (Base44 backend not available locally, so source write targets rendered HTML only)
+3. Base44 project: detected (`@base44/sdk`), builds correctly, preview shows static UI shell pixel-perfect. Dynamic data (database records, auth) lives in Base44's cloud and is inaccessible — this is expected. CMS editing targets static copy baked into React components only. Dashboard shows a "Base44 app — live data requires Base44 account" notice.
 4. Vanilla HTML: no build step, serves immediately, canvas editing works
 5. Unknown project: falls through to heuristic with graceful degradation — no crash, preview attempted
 
@@ -250,4 +250,5 @@ interface ProjectState {
 - Deployment pipeline (Cloudflare Pages integration) — separate spec
 - SvelteKit, Nuxt, Gatsby archetypes — can be added later with same pattern
 - Rebuild-on-source-change (auto rebuild after source write) — future enhancement
-- Base44 SDK content sync (requires Base44 API access) — future enhancement
+- Base44 live data sync (requires Base44 API access + user credentials) — future enhancement
+- Base44 "disconnect from backend" mode (replace SDK calls with local mock data) — future enhancement
