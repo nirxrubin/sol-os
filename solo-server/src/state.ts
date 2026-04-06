@@ -18,6 +18,13 @@ interface ProjectState {
   buildNeeded?: boolean;
   buildSuccess?: boolean;
   buildError?: string;
+  buildCommand?: string; // e.g. "npm run build" — from AI analysis
+  outputDir?: string;    // e.g. "dist" — from AI analysis
+  // Detection results (set by detector.ts before build/analysis)
+  archetypeId?: string;          // 'vite-react' | 'nextjs-app-router' | etc.
+  generatorId?: string;          // 'LOVABLE' | 'BASE44' | 'CLAUDE_CODE' | 'CURSOR' | 'UNKNOWN'
+  generatorConfidence?: string;  // 'certain' | 'likely' | 'unknown'
+  generatorNotice?: string;      // Optional dashboard notice (e.g. Base44 backend warning)
 }
 
 const STATE_FILE = path.join(WORKSPACE, '.sol-state.json');
@@ -61,6 +68,7 @@ export function getProjectState(): ProjectState | null {
 
 export function setAnalysisStatus(status: typeof analysisStatus) {
   analysisStatus = status;
+  if (status === 'idle') projectState = null; // Clear in-memory state on reset
 }
 
 export function getAnalysisStatus() {

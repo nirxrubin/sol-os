@@ -1,0 +1,95 @@
+<h2>Design: Autonomous SOL Analysis Agent</h2>
+<p class="subtitle">One session. System prompt. AI explores freely. SSE reflects every decision.</p>
+
+<div style="display:flex;flex-direction:column;gap:16px;margin-top:24px;font-size:13px;font-family:monospace;">
+
+  <!-- System prompt -->
+  <div style="background:#0d0d14;border:1px solid #7c5cfc;border-radius:8px;padding:16px;">
+    <div style="color:#7c5cfc;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">System Prompt — set once</div>
+    <div style="color:#a78bfa;line-height:1.6;font-size:12px;">
+      "You are SOL's analysis engine — a senior web developer exploring an unfamiliar codebase.<br>
+      Your job: deeply understand this project so SOL can render a live CMS editor and deploy pipeline.<br><br>
+      Work like a developer: read the file tree, read key files, follow imports and references until you truly understand the structure. Never assume routing patterns — read the router. Never assume content location — find the data files.<br><br>
+      When you are confident you understand the project completely, call <strong>write_analysis()</strong>."
+    </div>
+  </div>
+
+  <!-- Tools -->
+  <div style="background:#0d1408;border:1px solid #166534;border-radius:8px;padding:16px;">
+    <div style="color:#4ade80;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Tools the AI gets</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div style="background:#0a1a0a;border:1px solid #166534;border-radius:6px;padding:8px 12px;">
+        <div style="color:#4ade80;font-weight:bold;">list_files(dir?)</div>
+        <div style="color:#166534;font-size:11px;margin-top:3px;">Returns file tree. AI starts here.</div>
+      </div>
+      <div style="background:#0a1a0a;border:1px solid #166534;border-radius:6px;padding:8px 12px;">
+        <div style="color:#4ade80;font-weight:bold;">read_file(path)</div>
+        <div style="color:#166534;font-size:11px;margin-top:3px;">Returns file content. Core exploration tool.</div>
+      </div>
+      <div style="background:#0a1a0a;border:1px solid #166534;border-radius:6px;padding:8px 12px;">
+        <div style="color:#4ade80;font-weight:bold;">search_in_file(path, pattern)</div>
+        <div style="color:#166534;font-size:11px;margin-top:3px;">Grep within a file. Fast for large files.</div>
+      </div>
+      <div style="background:#1a1408;border:1px solid #78350f;border-radius:6px;padding:8px 12px;">
+        <div style="color:#fcd34d;font-weight:bold;">write_analysis(schema)</div>
+        <div style="color:#78350f;font-size:11px;margin-top:3px;">Terminal tool — ends session, writes result.</div>
+      </div>
+    </div>
+    <div style="margin-top:10px;color:#166534;font-size:11px;">Budget: max 40 tool calls · 10 min hard timeout · model: claude-sonnet-4-6 (fast) or opus (deep)</div>
+  </div>
+
+  <!-- SSE stream -->
+  <div style="background:#080d14;border:1px solid #1e3a5f;border-radius:8px;padding:16px;">
+    <div style="color:#60a5fa;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Live SSE stream → loading screen (what the user sees)</div>
+    <div style="line-height:2;color:#374151;font-size:12px;">
+      <span style="color:#9ca3af;">🔍</span> <span style="color:#6b7280;">Scanning project structure...</span>
+      <span style="color:#374151;font-size:10px;margin-left:8px;">← list_files()</span><br>
+      <span style="color:#9ca3af;">📖</span> <span style="color:#6b7280;">Reading index.html</span>
+      <span style="color:#374151;font-size:10px;margin-left:8px;">← read_file("index.html")</span><br>
+      <span style="color:#9ca3af;">📖</span> <span style="color:#6b7280;">Reading js/router.js</span>
+      <span style="color:#374151;font-size:10px;margin-left:8px;">← read_file("js/router.js")</span><br>
+      <span style="color:#4ade80;">✓</span> <span style="color:#16a34a;">Hash SPA detected — 7 routes found</span>
+      <span style="color:#374151;font-size:10px;margin-left:8px;">← AI reasoning before next tool call</span><br>
+      <span style="color:#9ca3af;">📖</span> <span style="color:#6b7280;">Reading js/pages/calculator.js</span><br>
+      <span style="color:#9ca3af;">📖</span> <span style="color:#6b7280;">Reading js/pages/blog.js</span><br>
+      <span style="color:#4ade80;">✓</span> <span style="color:#16a34a;">6 pages mapped with sections</span><br>
+      <span style="color:#9ca3af;">🔍</span> <span style="color:#6b7280;">Searching for data arrays in js/</span><br>
+      <span style="color:#9ca3af;">📖</span> <span style="color:#6b7280;">Reading js/blog-data.js</span><br>
+      <span style="color:#4ade80;">✓</span> <span style="color:#16a34a;">Found blogPosts — 12 items, 5 fields</span><br>
+      <span style="color:#9ca3af;">📖</span> <span style="color:#6b7280;">Reading package.json</span><br>
+      <span style="color:#fcd34d;">✓</span> <span style="color:#d97706;">Analysis complete — writing result</span>
+      <span style="color:#374151;font-size:10px;margin-left:8px;">← write_analysis() called</span>
+    </div>
+  </div>
+
+  <!-- What replaces what -->
+  <div style="background:#0d0d0d;border:1px solid #333;border-radius:8px;padding:16px;">
+    <div style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">What changes in the codebase</div>
+    <div style="display:flex;gap:16px;">
+      <div style="flex:1;">
+        <div style="color:#ef4444;font-size:11px;font-weight:bold;margin-bottom:6px;">REMOVED</div>
+        <div style="color:#7f1d1d;font-size:11px;line-height:1.8;font-family:monospace;">
+          analyze/swarm.ts<br>
+          analyze/agents/understand.ts<br>
+          analyze/agents/pages.ts<br>
+          analyze/agents/content.ts<br>
+          analyze/agents/tech.ts<br>
+          analyze/agents/launch.ts<br>
+          analyze/agents/callAI.ts<br>
+          progress.ts (fixed 7 steps)
+        </div>
+      </div>
+      <div style="flex:1;">
+        <div style="color:#4ade80;font-size:11px;font-weight:bold;margin-bottom:6px;">ADDED / REPLACED</div>
+        <div style="color:#166534;font-size:11px;line-height:1.8;font-family:monospace;">
+          analyze/autonomousAgent.ts ← new<br>
+          analyze/tools.ts ← tool defs<br>
+          analyze/systemPrompt.ts ← the prompt<br>
+          analyze/outputSchema.ts ← what write_analysis expects<br>
+          progress.ts → dynamic feed (not fixed steps)
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

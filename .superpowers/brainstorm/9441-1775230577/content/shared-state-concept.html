@@ -1,0 +1,80 @@
+<h2>Shared State: One conversation that builds</h2>
+<p class="subtitle">Every agent sees everything the previous agents discovered</p>
+
+<div style="display:flex;flex-direction:column;gap:0;margin-top:24px;font-family:monospace;font-size:13px;">
+
+  <div style="background:#0d0d14;border:1px solid #7c5cfc;border-radius:8px 8px 0 0;padding:14px 16px;">
+    <div style="color:#7c5cfc;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">SYSTEM PROMPT — set once, shared by all</div>
+    <div style="color:#a78bfa;font-size:12px;line-height:1.5;">"You are SOL's analysis engine. You deeply understand web projects of any structure — SPAs, multi-page, React, Vue, vanilla JS, Next.js. You reason from evidence in the code, never guess. Your analysis powers a live CMS editor and deploy pipeline."</div>
+  </div>
+
+  <div style="border-left:1px solid #333;border-right:1px solid #333;padding:0 16px;">
+    <div style="border-left:2px dashed #7c5cfc;margin-left:12px;padding-left:16px;padding-top:0;">
+
+      <div style="padding:12px 0;border-bottom:1px solid #1a1a1a;">
+        <div style="color:#888;font-size:10px;margin-bottom:4px;">USER TURN 1</div>
+        <div style="color:#555;font-size:12px;">Here is the project. [files]. What is this project and how does its navigation work?</div>
+      </div>
+
+      <div style="padding:12px 0;border-bottom:1px solid #1a1a1a;">
+        <div style="color:#7c5cfc;font-size:10px;margin-bottom:4px;">ASSISTANT TURN 1 — Blueprint</div>
+        <div style="color:#c4b5fd;font-size:12px;">This is CalcHub, a vanilla JS hash SPA. Router is in js/router.js — uses hashchange events, routes are "#/calculator", "#/blog", "#/about"... [full understanding]</div>
+      </div>
+
+      <div style="padding:12px 0;border-bottom:1px solid #1a1a1a;">
+        <div style="color:#888;font-size:10px;margin-bottom:4px;">USER TURN 2</div>
+        <div style="color:#555;font-size:12px;">Now map every page — sections, editable elements, SEO status.</div>
+      </div>
+
+      <div style="padding:12px 0;border-bottom:1px solid #1a1a1a;">
+        <div style="color:#7c5cfc;font-size:10px;margin-bottom:4px;">ASSISTANT TURN 2 — Pages (knows Turn 1)</div>
+        <div style="color:#c4b5fd;font-size:12px;">Since this is a hash SPA with navigateTo="#/calculator", Calculator page loads from js/pages/calculator.js... [full page map with correct navigateTo already baked in]</div>
+      </div>
+
+      <div style="padding:12px 0;border-bottom:1px solid #1a1a1a;">
+        <div style="color:#888;font-size:10px;margin-bottom:4px;">USER TURN 3</div>
+        <div style="color:#555;font-size:12px;">Find all CMS-worthy content collections.</div>
+      </div>
+
+      <div style="padding:12px 0;border-bottom:1px solid #1a1a1a;">
+        <div style="color:#7c5cfc;font-size:10px;margin-bottom:4px;">ASSISTANT TURN 3 — Content (knows Turns 1+2)</div>
+        <div style="color:#c4b5fd;font-size:12px;">From Turn 1 I know blog-data.js has the blogPosts array. From Turn 2 I know it links to the Blog page at "#/blog"... [contextually rich schemas]</div>
+      </div>
+
+      <div style="padding:12px 0;border-bottom:1px solid #1a1a1a;">
+        <div style="color:#888;font-size:10px;margin-bottom:4px;">USER TURN 4</div>
+        <div style="color:#555;font-size:12px;">What tech stack and integrations does this project need to launch?</div>
+      </div>
+
+      <div style="padding:12px 0;border-bottom:1px solid #1a1a1a;">
+        <div style="color:#7c5cfc;font-size:10px;margin-bottom:4px;">ASSISTANT TURN 4 — Tech (full context)</div>
+        <div style="color:#c4b5fd;font-size:12px;">Vanilla JS SPA (from Turn 1), has user auth (js/auth.js from Turn 2), blog needs CMS (from Turn 3)... [integrated recommendations]</div>
+      </div>
+
+      <div style="padding:12px 0;">
+        <div style="color:#888;font-size:10px;margin-bottom:4px;">USER TURN 5</div>
+        <div style="color:#555;font-size:12px;">Give me a launch readiness assessment.</div>
+      </div>
+
+      <div style="padding:12px 0;">
+        <div style="color:#7c5cfc;font-size:10px;margin-bottom:4px;">ASSISTANT TURN 5 — Launch (entire project understood)</div>
+        <div style="color:#c4b5fd;font-size:12px;">With full context of all 5 turns: score 42%, critical blockers: [specific, accurate], launch plan: [precise and relevant]</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="background:#0d0d14;border:1px solid #333;border-bottom:1px solid #7c5cfc;border-radius:0 0 8px 8px;padding:14px 16px;">
+    <div style="display:flex;gap:24px;">
+      <div style="flex:1;">
+        <div style="color:#4ade80;font-size:11px;font-weight:bold;margin-bottom:6px;">✓ What this solves</div>
+        <div style="color:#166534;font-size:11px;line-height:1.6;">No cascade failures<br>navigateTo derived once, used everywhere<br>Content linked to correct pages<br>Launch plan is actually specific</div>
+      </div>
+      <div style="flex:1;">
+        <div style="color:#f59e0b;font-size:11px;font-weight:bold;margin-bottom:6px;">? Open question</div>
+        <div style="color:#78350f;font-size:11px;line-height:1.6;">Files loaded upfront (static context)?<br>— or —<br>AI requests files as it needs them (tool use)?</div>
+      </div>
+    </div>
+  </div>
+
+</div>

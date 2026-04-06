@@ -1,0 +1,70 @@
+<h2>Three approaches to autonomous analysis</h2>
+<p class="subtitle">All use tool use + shared state. The difference is how structured the exploration is.</p>
+
+<div class="options" style="flex-direction:column;gap:16px;margin-top:24px;">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)" style="align-items:flex-start;">
+    <div class="letter">A</div>
+    <div class="content" style="width:100%;">
+      <h3>Single autonomous agent — recommended</h3>
+      <p>One Claude session. System prompt defines SOL analyst. We send the file tree + one instruction: "Analyze this project completely." AI calls tools freely until it understands the project, then calls <code>write_analysis(json)</code> to finish.</p>
+      <div style="display:flex;gap:12px;margin-top:12px;font-size:12px;">
+        <div style="background:#0d1a0d;border:1px solid #166534;border-radius:6px;padding:10px;flex:1;">
+          <div style="color:#4ade80;font-weight:bold;margin-bottom:6px;">Tools the AI gets</div>
+          <div style="color:#166534;line-height:1.8;font-family:monospace;">
+            list_files(dir?)<br>
+            read_file(path)<br>
+            search_in_file(path, pattern)<br>
+            write_analysis(schema) ← terminal tool
+          </div>
+        </div>
+        <div style="background:#0d0d1a;border:1px solid #1e1b4b;border-radius:6px;padding:10px;flex:1;">
+          <div style="color:#818cf8;font-weight:bold;margin-bottom:6px;">SSE stream shows</div>
+          <div style="color:#3730a3;line-height:1.8;font-size:11px;">
+            🔍 Reading js/router.js...<br>
+            ✓ Found hash routing — 7 routes<br>
+            🔍 Reading js/pages/blog.js...<br>
+            ✓ Blog page: 3 sections found<br>
+            🔍 Reading js/blog-data.js...<br>
+            ✓ Content: blogPosts array (12 items)<br>
+            ✓ Analysis complete — writing result
+          </div>
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:12px;">
+        <div class="pros"><h4>Pros</h4><ul><li>AI follows the actual code — no assumptions</li><li>Handles any project structure</li><li>SSE maps to real exploration steps</li><li>Simple to implement</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Variable time (email solves this)</li><li>Token cost scales with project size</li><li>Need a max-tools budget (40 calls)</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)" style="align-items:flex-start;">
+    <div class="letter">B</div>
+    <div class="content" style="width:100%;">
+      <h3>Autonomous agent + progressive checkpoints</h3>
+      <p>Same as A but after the AI explores, we inject checkpoint messages: "Output everything you know about pages so far as JSON, then continue." This gives us partial results during exploration — the dashboard can start rendering while analysis is still in progress.</p>
+      <div class="pros-cons" style="margin-top:12px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Partial results appear live — faster perceived loading</li><li>Dashboard renders pages while content is still being analyzed</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Complex prompt engineering to not interrupt AI flow</li><li>Partial results need careful merging with final output</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)" style="align-items:flex-start;">
+    <div class="letter">C</div>
+    <div class="content" style="width:100%;">
+      <h3>Multi-turn phases, each with tool use</h3>
+      <p>Keep the current phase structure (Understand → Pages → Content → Tech → Launch) but each phase runs in the same conversation thread and can call tools to read specific files. Full shared state, but phases give predictable SSE labels.</p>
+      <div class="pros-cons" style="margin-top:12px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Predictable phases = clear SSE progress</li><li>Each phase is focused and bounded</li><li>Easiest migration from current architecture</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>AI still constrained by our phase structure</li><li>May miss connections that span phases</li><li>More API message overhead</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:20px;background:#1a1408;border:1px solid #78350f;border-radius:8px;padding:14px;font-size:12px;">
+  <div style="color:#f59e0b;font-weight:bold;margin-bottom:6px;">My recommendation: A</div>
+  <div style="color:#92400e;line-height:1.6;">Start with A — it's the cleanest mental model and maps directly to how a developer actually explores an unfamiliar codebase. The SSE reflects real AI decisions, not our guesses about what files matter. B can be added later as an optimization once A is working. C solves the wrong problem (we already moved past phase-driven architecture).</div>
+</div>

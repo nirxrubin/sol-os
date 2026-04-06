@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { Upload, Globe, Shield, BarChart3, Sparkles, Loader2 } from 'lucide-react';
-import SolLogo from './SolLogo';
+import HpLogo from './HpLogo';
 import type { UploadResult } from '../data/types';
 
 interface LandingProps {
@@ -78,7 +78,7 @@ export default function Landing({ onImport }: LandingProps) {
       {/* Top-left logo */}
       <div className="px-8 pt-6">
         <div className="flex items-center gap-2">
-          <SolLogo className="h-6 w-auto text-text" />
+          <HpLogo className="h-5 w-auto text-text" />
         </div>
       </div>
 

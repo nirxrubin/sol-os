@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Send } from 'lucide-react';
-import SolLogo from './SolLogo';
+import HpLogo from './HpLogo';
 import type { ChatMessage } from '../data/types';
 
 interface ChatPanelProps {
@@ -54,8 +54,8 @@ export default function ChatPanel({ messages, onSend, onClose }: ChatPanelProps)
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-5 py-4">
         <div className="flex items-center gap-2">
-          <SolLogo className="h-5 w-auto text-accent" />
-          <span className="font-heading font-semibold text-text">Sol OS Agent</span>
+          <HpLogo className="h-4 w-auto text-accent" />
+          <span className="font-heading font-semibold text-text">HostaPosta AI</span>
         </div>
         <button
           onClick={onClose}
@@ -107,7 +107,7 @@ export default function ChatPanel({ messages, onSend, onClose }: ChatPanelProps)
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask Sol OS anything..."
+            placeholder="Ask HostaPosta anything..."
             className="flex-1 rounded-xl border border-border bg-bg-elevated px-4 py-3 text-sm text-text placeholder:text-text-muted outline-none focus:border-accent/50"
           />
           <button

@@ -1,63 +1,100 @@
-import { ChevronDown, Search, Moon, Sun, Rocket } from 'lucide-react';
-import type { ThemeMode } from '../data/types';
-import SolLogo from './SolLogo';
+import { Moon, Sun, ChevronDown, Plus } from 'lucide-react';
+import type { ThemeMode, DashboardTab } from '../data/types';
+import HpLogo from './HpLogo';
+
+// Generator display config — badge only shown for certain/likely detections
+const GENERATOR_LABELS: Record<string, string> = {
+  LOVABLE: 'Lovable',
+  BASE44: 'Base44',
+  CLAUDE_CODE: 'Claude Code',
+  CURSOR: 'Cursor',
+};
 
 interface TopBarProps {
   projectName: string;
-  readinessScore: number;
   theme: ThemeMode;
   onThemeToggle: () => void;
-  onChatToggle: () => void;
   onDeploy: () => void;
+  onNewProject?: () => void;
+  activeTab: DashboardTab;
+  onTabChange: (tab: DashboardTab) => void;
+  generatorId?: string;
+  generatorConfidence?: string;
 }
+
+const tabs: { id: DashboardTab; label: string }[] = [
+  { id: 'editor', label: 'Editor' },
+  { id: 'content', label: 'Content' },
+  { id: 'settings', label: 'Settings' },
+  { id: 'insights', label: 'Insights' },
+];
 
 export default function TopBar({
   projectName,
-  readinessScore,
   theme,
   onThemeToggle,
-  onChatToggle,
   onDeploy,
+  onNewProject,
+  activeTab,
+  onTabChange,
+  generatorId,
+  generatorConfidence,
 }: TopBarProps) {
+  const generatorLabel = generatorId && (generatorConfidence === 'certain' || generatorConfidence === 'likely')
+    ? GENERATOR_LABELS[generatorId]
+    : null;
   return (
-    <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-bg-sidebar px-4">
+    <header className="flex h-11 shrink-0 items-center justify-between border-b border-border bg-bg-sidebar px-4 gap-4">
       {/* Left: Brand + Project */}
-      <div className="flex items-center gap-2.5">
-        <SolLogo className="h-6 w-auto text-text" />
-        <span className="text-text-muted">&middot;</span>
-        <button className="flex items-center gap-1 text-[13px] text-text-secondary hover:text-text transition-colors">
-          <span>{projectName}</span>
-          <ChevronDown className="h-3 w-3" />
+      <div className="flex items-center gap-2 min-w-[160px]">
+        <HpLogo className="h-4 w-auto text-text" />
+        <span className="text-text-muted text-[14px] font-light select-none">/</span>
+        <button className="flex items-center gap-1 text-[13px] text-text-secondary hover:text-text transition-colors max-w-[128px]">
+          <span className="truncate">{projectName}</span>
+          <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
         </button>
+        {generatorLabel && (
+          <span
+            title={`Detected generator: ${generatorLabel} (${generatorConfidence})`}
+            className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 select-none"
+          >
+            {generatorLabel}
+          </span>
+        )}
+        {onNewProject && (
+          <button
+            onClick={onNewProject}
+            title="New project"
+            className="flex items-center gap-1 rounded border border-border px-1.5 py-0.5 text-[11px] text-text-muted hover:text-text-secondary hover:border-text-muted/30 transition-colors"
+          >
+            <Plus className="h-2.5 w-2.5" />
+            New
+          </button>
+        )}
       </div>
 
-      {/* Center: Search */}
-      <div className="hidden md:flex items-center w-72">
-        <div className="relative flex w-full items-center">
-          <Search className="absolute left-2.5 h-3.5 w-3.5 text-text-muted" />
-          <input
-            type="text"
-            placeholder="Search nodes, pages, tasks..."
-            className="w-full rounded-lg bg-bg-card border border-border px-3 py-1.5 pl-8 pr-14 text-[13px] text-text placeholder:text-text-muted outline-none focus:ring-1 focus:ring-accent/50"
-          />
-          <span className="absolute right-2.5 flex items-center gap-0.5 rounded bg-bg-elevated px-1 py-0.5 text-[10px] font-medium text-text-muted">
-            <span>&#8984;</span>
-            <span>K</span>
-          </span>
-        </div>
-      </div>
+      {/* Center: Tab navigation */}
+      <nav className="flex items-center gap-0.5 flex-1 justify-center">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => onTabChange(tab.id)}
+            className={`px-3.5 py-1.5 text-[13px] rounded-md transition-colors font-medium ${
+              activeTab === tab.id
+                ? 'bg-bg-hover text-text'
+                : 'text-text-muted hover:text-text-secondary hover:bg-bg-elevated'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
 
       {/* Right: Actions */}
-      <div className="flex items-center gap-1.5">
-        {/* Readiness badge */}
-        <div className="flex items-center gap-1.5 rounded-full bg-bg-elevated px-2.5 py-1 text-[12px] text-text-secondary">
-          <span className="h-1.5 w-1.5 rounded-full bg-status-orange" />
-          <span>Readiness {readinessScore}%</span>
-        </div>
-
+      <div className="flex items-center gap-1.5 min-w-[160px] justify-end">
         <button
           onClick={onThemeToggle}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-text-muted hover:bg-bg-hover hover:text-text transition-colors"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-text-muted hover:bg-bg-hover hover:text-text-secondary transition-colors"
           aria-label="Toggle theme"
         >
           {theme === 'dark' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
@@ -65,10 +102,9 @@ export default function TopBar({
 
         <button
           onClick={onDeploy}
-          className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1 text-[12px] font-semibold text-brand-950 hover:bg-accent-hover transition-colors"
+          className="flex items-center gap-1.5 rounded-lg bg-accent px-3.5 py-1.5 text-[12px] font-medium text-brand-950 hover:bg-accent-hover transition-colors"
         >
-          <Rocket className="h-3.5 w-3.5" />
-          <span>Deploy</span>
+          Publish
         </button>
       </div>
     </header>

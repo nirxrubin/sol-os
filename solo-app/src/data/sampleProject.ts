@@ -138,6 +138,18 @@ export const analysisSteps: AnalysisStep[] = [
       'Readiness score: 34%',
     ],
   },
+  {
+    id: 'step-12',
+    label: 'Understanding your business context',
+    description: 'AI is reading your content to understand what you do and who you serve',
+    status: 'complete',
+    details: [
+      'Business type identified',
+      'Target audience mapped',
+      'Launch gaps detected',
+      'Recommendations generated',
+    ],
+  },
 ];
 
 export const sampleProject: Project = {
@@ -636,7 +648,7 @@ export const sampleProject: Project = {
       description: 'Search engine optimization, meta tags, and structured data',
       automation: 'automated',
       providers: [
-        { id: 'prov-solo-seo', name: 'Sol OS Built-in SEO', description: 'Automatic meta tags, sitemap generation, and robots.txt based on your content.', price: 'Included', recommended: true, tier: 'budget' },
+        { id: 'prov-solo-seo', name: 'HostaPosta Built-in SEO', description: 'Automatic meta tags, sitemap generation, and robots.txt based on your content.', price: 'Included', recommended: true, tier: 'budget' },
         { id: 'prov-yoast', name: 'Yoast SEO', description: 'Comprehensive SEO toolkit with readability analysis, schema markup, and redirect management.', price: '$99/yr', tier: 'balanced' },
         { id: 'prov-ahrefs', name: 'Ahrefs Webmaster Tools', description: 'Advanced SEO audit, backlink analysis, and keyword research platform.', price: 'Free - $99/mo', tier: 'scale' },
       ],
@@ -656,7 +668,7 @@ export const sampleProject: Project = {
       description: 'AI Engine Optimization for AI search and assistant visibility',
       automation: 'guided',
       providers: [
-        { id: 'prov-solo-aeo', name: 'Sol OS Built-in AEO', description: 'Structured content annotations and AI-friendly markup to improve visibility in AI search results.', price: 'Included', recommended: true, tier: 'budget' },
+        { id: 'prov-solo-aeo', name: 'HostaPosta Built-in AEO', description: 'Structured content annotations and AI-friendly markup to improve visibility in AI search results.', price: 'Included', recommended: true, tier: 'budget' },
         { id: 'prov-schema-pro', name: 'Schema Pro', description: 'Advanced structured data generator with support for 35+ schema types and automated testing.', price: '$79/yr', tier: 'balanced' },
         { id: 'prov-clearscope', name: 'Clearscope', description: 'AI-powered content optimization that helps you create comprehensive, entity-rich content.', price: '$170/mo', tier: 'scale' },
       ],

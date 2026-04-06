@@ -153,7 +153,7 @@ export default function LaunchReadiness({
               <div className="flex items-center gap-2">
                 <Globe className="h-4 w-4 text-status-green" />
                 <p className="text-sm text-text">
-                  Your site is already live at <span className="font-mono font-medium text-status-green">yourproject.sol.app</span>
+                  Your site is already live at <span className="font-mono font-medium text-status-green">yourproject.hostaposta.app</span>
                 </p>
               </div>
             </div>
@@ -284,7 +284,7 @@ export default function LaunchReadiness({
                       </div>
                     </div>
                     <p className="text-[11px] text-text-muted">
-                      Changes usually take effect within a few minutes. Sol OS will handle SSL and all DNS settings automatically.
+                      Changes usually take effect within a few minutes. HostaPosta will handle SSL and all DNS settings automatically.
                     </p>
                   </motion.div>
                 )}
@@ -381,7 +381,7 @@ export default function LaunchReadiness({
             <div className="flex items-start gap-3">
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
               <p className="text-xs text-text-secondary">
-                Sol OS manages every tool you pick. No accounts to create, no setup to do. Just choose and deploy.
+                HostaPosta manages every tool you pick. No accounts to create, no setup to do. Just choose and deploy.
               </p>
             </div>
           </div>
@@ -412,7 +412,7 @@ export default function LaunchReadiness({
                 ) : (
                   <>
                     <Rocket className="h-4 w-4" />
-                    <span>Deploy with custom setup</span>
+                    <span>Publish with custom setup</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </>
                 )}
@@ -441,9 +441,9 @@ export default function LaunchReadiness({
               <Rocket className="h-5 w-5 text-accent" />
             </div>
             <div>
-              <h2 className="font-heading text-xl font-semibold text-text">Deploy to Production</h2>
+              <h2 className="font-heading text-xl font-semibold text-text">Publish your site</h2>
               <p className="text-sm text-text-secondary">
-                Choose your stack - Sol OS handles everything else
+                Choose your stack — HostaPosta handles everything else
               </p>
             </div>
           </div>
@@ -456,7 +456,7 @@ export default function LaunchReadiness({
           </button>
         </div>
 
-        {/* Domain + Sol OS info row */}
+        {/* Domain + HostaPosta info row */}
         <div className="px-8 mt-6 flex gap-4">
           {/* Domain CTA */}
           <button
@@ -481,12 +481,12 @@ export default function LaunchReadiness({
             <ArrowRight className="h-3.5 w-3.5 text-text-muted" />
           </button>
 
-          {/* Sol OS explainer */}
+          {/* HostaPosta explainer */}
           <div className="flex-1 rounded-xl bg-accent/5 border border-accent/20 px-5 py-3.5">
             <div className="flex items-start gap-3">
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
               <div>
-                <p className="text-sm font-medium text-text">Sol OS manages everything</p>
+                <p className="text-sm font-medium text-text">HostaPosta manages everything</p>
                 <p className="text-xs text-text-muted">
                   No accounts to create. Pick a bundle and deploy.
                 </p>
@@ -645,7 +645,7 @@ export default function LaunchReadiness({
                   {activeBundle.name} Bundle
                 </span>
                 <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-[10px] font-medium text-accent">
-                  {activeBundle.providers.length} services managed by Sol
+                  {activeBundle.providers.length} services managed by HostaPosta
                 </span>
               </div>
               <p className="mt-1 text-xs text-text-secondary">
@@ -670,7 +670,7 @@ export default function LaunchReadiness({
               ) : (
                 <>
                   <Rocket className="h-4 w-4" />
-                  <span>Deploy Now</span>
+                  <span>Publish Now</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </>
               )}

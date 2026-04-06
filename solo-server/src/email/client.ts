@@ -11,9 +11,11 @@ function getFrom() {
 }
 
 export async function sendAnalysisReady(to: string, projectName: string) {
+  const from = getFrom();
+  console.log('[email] Sending to:', to, '| from:', from);
   try {
-    await getResend().emails.send({
-      from: getFrom(),
+    const result = await getResend().emails.send({
+      from,
       to,
       subject: `Your project "${projectName}" is ready on Sol OS`,
       html: `
@@ -33,8 +35,13 @@ export async function sendAnalysisReady(to: string, projectName: string) {
         </div>
       `,
     });
+    if (result.error) {
+      console.warn('[email] Resend API error:', JSON.stringify(result.error));
+    } else {
+      console.log('[email] Sent successfully, id:', result.data?.id);
+    }
   } catch (err) {
     // Email failure should never block the main flow
-    console.warn('Email send failed:', err);
+    console.warn('[email] Send failed (exception):', err);
   }
 }

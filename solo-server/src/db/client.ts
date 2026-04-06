@@ -58,7 +58,6 @@ export async function getProject(id: string) {
 }
 
 export async function upsertContentTypes(projectId: string, contentTypes: {
-  id: string;
   name: string;
   slug: string;
   sourceFile?: string;
@@ -68,8 +67,10 @@ export async function upsertContentTypes(projectId: string, contentTypes: {
 }[]) {
   if (contentTypes.length === 0) return;
 
+  // Delete existing content types for this project and re-insert
+  await getDb().from('content_types').delete().eq('project_id', projectId);
+
   const rows = contentTypes.map(ct => ({
-    id: ct.id,
     project_id: projectId,
     name: ct.name,
     slug: ct.slug,
@@ -81,7 +82,7 @@ export async function upsertContentTypes(projectId: string, contentTypes: {
 
   const { error } = await getDb()
     .from('content_types')
-    .upsert(rows, { onConflict: 'id' });
+    .insert(rows);
 
   if (error) throw new Error(`Failed to upsert content types: ${error.message}`);
 }

@@ -4,6 +4,9 @@
  * Detects whether an imported project needs a build step (React, Vue, Svelte, etc.)
  * and runs `npm install && npm run build` to produce deployable static output.
  *
+ * When an ArchetypeDefinition is passed, build config is taken directly from it
+ * (zero guessing). Without one, falls back to heuristic detection for backward compat.
+ *
  * Returns the path to serve for preview — either the built output (dist/) or the
  * original project root for static HTML sites.
  */
@@ -13,6 +16,7 @@ import { promisify } from 'util';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
+import type { ArchetypeDefinition } from './archetypes.js';
 
 /** The URL prefix where previews are served */
 const PREVIEW_BASE = '/preview/';
@@ -37,11 +41,94 @@ interface PackageJson {
 /**
  * Detect if project needs building and, if so, build it.
  * Returns the path that should be served for preview.
+ *
+ * Pass `archetype` for deterministic config (no guessing).
+ * Omit for backward-compat heuristic mode.
  */
-export async function buildProject(projectRoot: string, options?: { force?: boolean }): Promise<BuildResult> {
+export async function buildProject(
+  projectRoot: string,
+  options?: { force?: boolean; archetype?: ArchetypeDefinition },
+): Promise<BuildResult> {
   const pkgPath = path.join(projectRoot, 'package.json');
   const force = options?.force ?? false;
+  const archetype = options?.archetype;
 
+  // ── Archetype-driven fast path ──────────────────────────────────────────
+  if (archetype) {
+    // No build needed (vanilla HTML)
+    if (archetype.build.command === 'none') {
+      return { needed: false, success: true, servePath: projectRoot };
+    }
+
+    const outputDir = archetype.build.outputDir;
+    const outputPath = outputDir === '.' ? projectRoot : path.join(projectRoot, outputDir);
+
+    // Already built — skip unless forcing
+    if (!force && existsSync(outputPath) && existsSync(path.join(outputPath, 'index.html'))) {
+      console.log(`  [archetype: ${archetype.id}] Build output already exists at ${outputDir}/`);
+      return { needed: true, success: true, servePath: outputPath };
+    }
+
+    console.log(`  [archetype: ${archetype.id}] Building → ${outputDir}/`);
+    const startTime = Date.now();
+
+    // Read pkg once for patching (still needed for router patching logic)
+    let pkg: PackageJson = {};
+    try { pkg = JSON.parse(await fs.readFile(pkgPath, 'utf-8')); } catch { /* ignore */ }
+
+    try {
+      if (!force) {
+        console.log('  Running npm install...');
+        const installResult = await execAsync('npm install --legacy-peer-deps', {
+          cwd: projectRoot,
+          timeout: 120_000,
+          env: { ...process.env, NODE_ENV: 'development' },
+        });
+        if (installResult.stderr && !installResult.stderr.includes('npm warn')) {
+          console.log('  npm install stderr:', installResult.stderr.slice(0, 500));
+        }
+        // Patch source for preview compat (uses archetype.build.basePath)
+        await patchSourceForPreviewArchetype(projectRoot, pkg, archetype);
+      }
+
+      const buildCommand = getBuildCommandArchetype(archetype);
+      console.log(`  Build command: ${buildCommand}`);
+      const buildResult = await execAsync(buildCommand, {
+        cwd: projectRoot,
+        timeout: 180_000,
+        env: { ...process.env, NODE_ENV: 'production', CI: 'true' },
+      });
+
+      const duration = Date.now() - startTime;
+      console.log(`  Build completed in ${(duration / 1000).toFixed(1)}s`);
+
+      if (existsSync(outputPath) && existsSync(path.join(outputPath, 'index.html'))) {
+        return { needed: true, success: true, servePath: outputPath, buildOutput: buildResult.stdout.slice(-500), duration };
+      }
+
+      // Try common fallbacks in case outputDir was wrong
+      for (const alt of ['dist', 'build', 'out', 'public']) {
+        const altPath = path.join(projectRoot, alt);
+        if (existsSync(altPath) && existsSync(path.join(altPath, 'index.html'))) {
+          console.log(`  Found build output at ${alt}/ (expected ${outputDir}/)`);
+          return { needed: true, success: true, servePath: altPath, buildOutput: buildResult.stdout.slice(-500), duration };
+        }
+      }
+
+      return {
+        needed: true, success: false, servePath: projectRoot,
+        buildError: `Build completed but no output found in ${outputDir}/`,
+        buildOutput: buildResult.stdout.slice(-500), duration,
+      };
+    } catch (err: any) {
+      const duration = Date.now() - startTime;
+      const errorMsg = err.stderr || err.message || String(err);
+      console.error(`  Build failed after ${(duration / 1000).toFixed(1)}s:`, errorMsg.slice(0, 500));
+      return { needed: true, success: false, servePath: projectRoot, buildError: errorMsg.slice(0, 1000), duration };
+    }
+  }
+
+  // ── Heuristic fallback (no archetype provided) ──────────────────────────
   // No package.json → static site, serve as-is
   if (!existsSync(pkgPath)) {
     return { needed: false, success: true, servePath: projectRoot };
@@ -180,57 +267,242 @@ export async function buildProject(projectRoot: string, options?: { force?: bool
   }
 }
 
+// ─── Archetype-driven helpers ───────────────────────────────────────────────
+
+/**
+ * Returns the build command for a known archetype.
+ */
+function getBuildCommandArchetype(archetype: ArchetypeDefinition): string {
+  switch (archetype.build.basePath) {
+    case 'vite-flag':
+      return `npm run build -- --base=${PREVIEW_BASE}`;
+    case 'cra-env':
+      return `PUBLIC_URL=${PREVIEW_BASE} npm run build`;
+    default:
+      // next-static-export, vue-router, none — all use plain npm run build
+      // (patching is handled by patchSourceForPreviewArchetype)
+      return 'npm run build';
+  }
+}
+
+/**
+ * Archetype-aware source patcher. Uses archetype.build.basePath to decide
+ * what to patch instead of re-detecting from deps.
+ */
+async function patchSourceForPreviewArchetype(
+  projectRoot: string,
+  pkg: PackageJson,
+  archetype: ArchetypeDefinition,
+): Promise<void> {
+  switch (archetype.build.basePath) {
+    case 'next-static-export':
+      await patchNextConfigForStaticExport(projectRoot);
+      break;
+    case 'vue-router': {
+      const srcDir = path.join(projectRoot, 'src');
+      if (!existsSync(srcDir)) break;
+      const tsFiles  = await findFilesRecursive(srcDir, /\.(tsx?|jsx?)$/);
+      const vueFiles = await findFilesRecursive(srcDir, /\.vue$/);
+      for (const file of [...tsFiles, ...vueFiles]) {
+        await patchVueRouterFile(projectRoot, file);
+      }
+      break;
+    }
+    case 'vite-flag':
+      // base path is passed as CLI flag — no source patching needed
+      // but still patch React Router if present
+      if (pkg.dependencies?.['react-router-dom'] || pkg.devDependencies?.['react-router-dom']) {
+        const srcDir = path.join(projectRoot, 'src');
+        if (existsSync(srcDir)) {
+          const tsFiles = await findFilesRecursive(srcDir, /\.(tsx?|jsx?)$/);
+          for (const file of tsFiles) await patchReactRouterFile(projectRoot, file);
+        }
+      }
+      break;
+    default:
+      break;
+  }
+}
+
 /**
  * Patch source files for preview compatibility.
- * - Injects basename="/preview" into React Router's BrowserRouter
- * - Handles other framework routers as needed
+ * Injects basename="/preview" into all known router patterns so sub-routes
+ * resolve correctly when the app is served from /preview/.
  *
- * These patches ensure the app works correctly when served from /preview/.
+ * Handles:
+ *   - React Router v5/v6 <BrowserRouter>
+ *   - React Router v6 createBrowserRouter()
+ *   - Vue Router createWebHistory()
+ *
  * Original files are backed up with .sol-backup extension for clean deploy.
  */
 async function patchSourceForPreview(projectRoot: string, pkg: PackageJson): Promise<void> {
   const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
 
-  // React Router: find BrowserRouter usage and inject basename
-  if (allDeps['react-router-dom']) {
-    await patchReactRouter(projectRoot);
+  // Next.js: force static export so the build produces a serveable out/ directory
+  if (allDeps['next']) {
+    await patchNextConfigForStaticExport(projectRoot);
+    return; // No router patching needed for Next.js — it handles its own routing
   }
-}
 
-async function patchReactRouter(projectRoot: string): Promise<void> {
   const srcDir = path.join(projectRoot, 'src');
   if (!existsSync(srcDir)) return;
 
-  // Find files that use BrowserRouter
-  const files = await findFilesRecursive(srcDir, /\.(tsx?|jsx?)$/);
+  const tsFiles  = await findFilesRecursive(srcDir, /\.(tsx?|jsx?)$/);
+  const vueFiles = await findFilesRecursive(srcDir, /\.vue$/);
 
-  for (const file of files) {
+  if (allDeps['react-router-dom']) {
+    for (const file of tsFiles) {
+      await patchReactRouterFile(projectRoot, file);
+    }
+  }
+
+  if (allDeps['vue-router']) {
+    for (const file of [...tsFiles, ...vueFiles]) {
+      await patchVueRouterFile(projectRoot, file);
+    }
+  }
+}
+
+/**
+ * Patch next.config.ts/js to force static HTML export.
+ *
+ * Without output: 'export', next build creates .next/ which requires
+ * a Node.js server to serve. With it, next build creates out/ — a
+ * plain static directory our preview server can serve directly.
+ *
+ * Also adds images: { unoptimized: true } which is required for
+ * static export (Next.js image optimization needs a server component).
+ */
+async function patchNextConfigForStaticExport(projectRoot: string): Promise<void> {
+  const candidates = ['next.config.ts', 'next.config.mts', 'next.config.js', 'next.config.mjs'];
+
+  for (const name of candidates) {
+    const configPath = path.join(projectRoot, name);
+    if (!existsSync(configPath)) continue;
+
     let content: string;
-    try {
-      content = await fs.readFile(file, 'utf-8');
-    } catch { continue; }
+    try { content = await fs.readFile(configPath, 'utf-8'); } catch { return; }
 
-    if (!content.includes('BrowserRouter')) continue;
-
-    // Check if basename is already set
-    if (content.includes('basename=')) continue;
-
-    // Backup original
-    const backupPath = file + '.sol-backup';
-    if (!existsSync(backupPath)) {
-      await fs.writeFile(backupPath, content);
+    // Already configured for static export
+    if (content.includes("output: 'export'") || content.includes('output: "export"')) {
+      console.log(`  ${name} already has output: 'export'`);
+      return;
     }
 
-    // Inject basename prop into <BrowserRouter> or <BrowserRouter ...>
-    const patched = content.replace(
-      /<BrowserRouter(\s*>|\s+(?!basename))/g,
-      '<BrowserRouter basename="/preview"$1'
+    await backupFile(configPath);
+
+    // Strip placeholder comments that cause syntax errors after injection
+    // e.g. "/* config options here */" left by create-next-app
+    let stripped = content.replace(/\/\*[^*]*\*+(?:[^/*][^*]*\*+)*\//g, '').replace(/,(\s*,)+/g, ',').replace(/\{(\s*,)/g, '{').trim();
+
+    // Inject output + images into the config object literal
+    // Handles: const nextConfig: NextConfig = { ... }
+    //          const nextConfig = { ... }
+    //          export default { ... }
+    let patched = stripped.replace(
+      /(\bconst\s+\w+\s*(?::\s*\w+\s*)?\=\s*\{|export\s+default\s+\{)([\s\S]*?)(\})\s*;?\s*$/m,
+      (_, open, inner, close) => {
+        const additions: string[] = [];
+        if (!inner.includes('output'))  additions.push("  output: 'export'");
+        if (!inner.includes('images'))  additions.push('  images: { unoptimized: true }');
+        if (additions.length === 0) return _;
+        const cleanInner = inner.replace(/^\s*,/, '').trimEnd(); // strip leading comma
+        const sep = cleanInner.endsWith(',') || cleanInner.trim() === '' ? '\n' : ',\n';
+        return open + cleanInner + sep + additions.join(',\n') + ',\n' + close + ';';
+      }
     );
 
-    if (patched !== content) {
-      await fs.writeFile(file, patched);
-      console.log(`  Patched BrowserRouter basename in ${path.relative(projectRoot, file)}`);
+    if (patched === content) {
+      // Fallback: simpler single-pass inject for edge cases
+      patched = content.replace(
+        /nextConfig\s*=\s*\{/,
+        "nextConfig = {\n  output: 'export',\n  images: { unoptimized: true },"
+      );
     }
+
+    if (patched !== content) {
+      await fs.writeFile(configPath, patched);
+      console.log(`  Patched ${name}: added output: 'export' + images.unoptimized`);
+    }
+    return;
+  }
+}
+
+async function patchReactRouterFile(projectRoot: string, file: string): Promise<void> {
+  let content: string;
+  try { content = await fs.readFile(file, 'utf-8'); } catch { return; }
+
+  const hasBrowserRouter    = content.includes('BrowserRouter');
+  const hasCreateBrowser    = content.includes('createBrowserRouter');
+  if (!hasBrowserRouter && !hasCreateBrowser) return;
+
+  // Already patched
+  if (content.includes("basename: '/preview'") || content.includes('basename: "/preview"') ||
+      content.includes('basename="/preview"')) return;
+
+  await backupFile(file);
+  let patched = content;
+
+  // ── <BrowserRouter> JSX pattern (React Router v5 / v6 legacy) ──────
+  if (hasBrowserRouter) {
+    patched = patched.replace(
+      /<BrowserRouter(\s*>|\s+(?!basename))/g,
+      '<BrowserRouter basename="/preview"$1',
+    );
+  }
+
+  // ── createBrowserRouter(routes, { ...options }) ─────────────────────
+  // Inject basename into existing options object
+  if (hasCreateBrowser) {
+    patched = patched.replace(
+      /createBrowserRouter\(([^,)]+),\s*\{/g,
+      "createBrowserRouter($1, { basename: '/preview',",
+    );
+
+    // ── createBrowserRouter(routes) — no options at all ─────────────
+    // Only applies if the previous replace didn't already fire
+    patched = patched.replace(
+      /createBrowserRouter\((\w+)\)(?!\s*,\s*\{)/g,
+      "createBrowserRouter($1, { basename: '/preview' })",
+    );
+  }
+
+  if (patched !== content) {
+    await fs.writeFile(file, patched);
+    console.log(`  Patched React Router basename in ${path.relative(projectRoot, file)}`);
+  }
+}
+
+async function patchVueRouterFile(projectRoot: string, file: string): Promise<void> {
+  let content: string;
+  try { content = await fs.readFile(file, 'utf-8'); } catch { return; }
+
+  if (!content.includes('createWebHistory')) return;
+
+  // Already set to /preview, or delegated to Vite via BASE_URL
+  if (content.includes('/preview') || content.includes('BASE_URL')) return;
+
+  await backupFile(file);
+
+  // createWebHistory() or createWebHistory('/') or createWebHistory('/any')
+  const patched = content.replace(
+    /createWebHistory\s*\(\s*(?:'[^']*'|"[^"]*")?\s*\)/g,
+    "createWebHistory('/preview')",
+  );
+
+  if (patched !== content) {
+    await fs.writeFile(file, patched);
+    console.log(`  Patched Vue Router createWebHistory in ${path.relative(projectRoot, file)}`);
+  }
+}
+
+async function backupFile(file: string): Promise<void> {
+  const backupPath = file + '.sol-backup';
+  if (!existsSync(backupPath)) {
+    try {
+      await fs.copyFile(file, backupPath);
+    } catch { /* ignore */ }
   }
 }
 

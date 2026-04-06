@@ -24,6 +24,7 @@ interface CMSTableViewProps {
   activeType: ContentType;
   onTypeChange: (ct: ContentType) => void;
   onItemsChange?: (typeId: string, items: ContentItem[]) => void;
+  onItemSave?: (typeId: string, item: ContentItem, changedFields: Record<string, unknown>) => void;
   initialEditItemId?: string | null;
 }
 
@@ -45,20 +46,29 @@ function getIcon(ct: ContentType): React.ElementType {
 }
 
 function getColumns(ct: ContentType): string[] {
-  const name = ct.name.toLowerCase();
-  if (name.includes('blog')) {
-    return ['title', 'author', 'date', 'excerpt'];
-  }
-  return ct.fields.slice(0, 4).map((f) => f.name.toLowerCase());
+  // Always derive columns from actual fields — no hardcoded assumptions
+  const skip = new Set(['id', 'content', 'body', 'html', 'richtext', 'description_long']);
+  const preferred = ['title', 'name', 'heading', 'slug'];
+
+  // Put preferred fields first (if they exist), then remaining non-skipped fields, up to 4
+  const fieldNames = ct.fields.map((f) => f.name.toLowerCase());
+  const sorted = [
+    ...preferred.filter((p) => fieldNames.includes(p)),
+    ...fieldNames.filter((f) => !preferred.includes(f) && !skip.has(f)),
+  ];
+  return sorted.slice(0, 4);
 }
 
 function formatDate(raw: string): string {
+  // Only try to reformat strings that look like ISO dates or parseable formats
+  if (!raw || typeof raw !== 'string') return String(raw ?? '-');
+  const iso = /^\d{4}-\d{2}-\d{2}/.test(raw);
+  const simple = /^\w+ \d+,\s*\d{4}$/.test(raw); // "Jan 1, 2024"
+  if (!iso && !simple) return raw; // Return as-is (e.g. Hebrew dates, custom formats)
   try {
-    return new Date(raw).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return raw;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   } catch {
     return raw;
   }
@@ -100,6 +110,7 @@ const FIELD_TYPE_OPTIONS: ContentFieldType[] = [
   'boolean',
   'select',
   'email',
+  'slug',
 ];
 
 export default function CMSTableView({
@@ -107,6 +118,7 @@ export default function CMSTableView({
   activeType,
   onTypeChange,
   onItemsChange,
+  onItemSave,
   initialEditItemId,
 }: CMSTableViewProps) {
   const [search, setSearch] = useState('');
@@ -181,11 +193,19 @@ export default function CMSTableView({
       status: editStatus,
       updatedAt: now,
     };
+    // Compute changed fields for live canvas sync
+    const changedFields: Record<string, unknown> = {};
+    for (const key of Object.keys(editFormData)) {
+      if (editFormData[key] !== editingItem.data[key]) {
+        changedFields[key] = editFormData[key];
+      }
+    }
     const updatedItems = currentItems.map((item) =>
       item.id === editingItem.id ? updatedItem : item,
     );
     updateItems(updatedItems);
     setEditingItem(updatedItem);
+    onItemSave?.(activeType.id, updatedItem, changedFields);
   }
 
   function handleDelete() {
@@ -268,15 +288,19 @@ export default function CMSTableView({
             />
           </div>
         );
-      case 'date':
+      case 'date': {
+        // Use date picker only for ISO-format values; fall back to text for other formats
+        const strVal = (value as string) ?? '';
+        const isIso = /^\d{4}-\d{2}-\d{2}/.test(strVal);
         return (
           <input
-            type="date"
-            value={(value as string) ?? ''}
+            type={isIso || !strVal ? 'date' : 'text'}
+            value={strVal}
             onChange={(e) => handleFieldChange(field.name, e.target.value)}
             className={inputClasses}
           />
         );
+      }
       case 'url':
         return (
           <input
@@ -337,6 +361,23 @@ export default function CMSTableView({
             onChange={(e) => handleFieldChange(field.name, e.target.value)}
             className={inputClasses}
           />
+        );
+      case 'slug':
+        return (
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-text-muted">/</span>
+            <input
+              type="text"
+              placeholder="my-post-slug"
+              value={(value as string) ?? ''}
+              onChange={(e) => {
+                // Auto-slugify: lowercase, spaces→hyphens, strip non-alphanumeric
+                const slug = e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                handleFieldChange(field.name, slug);
+              }}
+              className={inputClasses + ' pl-6 font-mono text-xs'}
+            />
+          </div>
         );
       default:
         return (
@@ -420,17 +461,31 @@ export default function CMSTableView({
                 {columns.map((col, idx) => {
                   const val = cellValue(item, col);
                   const isTitle = idx === 0;
+                  // Check if this column corresponds to an image field
+                  const fieldDef = currentFields.find((f) => f.name.toLowerCase() === col.toLowerCase());
+                  const isImageField = fieldDef?.type === 'image';
                   return (
                     <td
                       key={col}
-                      className={`py-4.5 pr-6 text-sm max-w-[220px] truncate ${
+                      className={`py-3 pr-6 text-sm ${
                         isTitle
-                          ? 'font-medium text-accent hover:text-accent-hover max-w-[180px]'
-                          : 'text-text-secondary'
+                          ? 'font-medium text-accent hover:text-accent-hover max-w-[180px] truncate'
+                          : isImageField
+                            ? 'w-12'
+                            : 'text-text-secondary max-w-[220px] truncate'
                       }`}
-                      title={val}
+                      title={isImageField ? undefined : val}
                     >
-                      {val}
+                      {isImageField && val !== '-' ? (
+                        <img
+                          src={val}
+                          alt=""
+                          className="h-9 w-12 rounded object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      ) : (
+                        val
+                      )}
                     </td>
                   );
                 })}
@@ -510,17 +565,23 @@ export default function CMSTableView({
 
               {/* Body - scrollable */}
               <div className="flex-1 overflow-y-auto px-6 py-5">
-                {currentFields.map((field) => (
-                  <div key={field.id} className="mb-5">
-                    <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-text-muted">
-                      {field.name}
-                      {field.required && (
-                        <span className="ml-1 text-red-400">*</span>
-                      )}
-                    </label>
-                    {renderFieldInput(field)}
-                  </div>
-                ))}
+                {currentFields.map((field) => {
+                  const isSystemId = field.name.toLowerCase() === 'id';
+                  return (
+                    <div key={field.id} className="mb-5">
+                      <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-text-muted">
+                        {field.name}
+                        {field.required && <span className="text-red-400">*</span>}
+                        {isSystemId && <span className="rounded bg-bg-elevated px-1 py-0.5 text-[9px] normal-case tracking-normal text-text-muted">read-only</span>}
+                      </label>
+                      {isSystemId ? (
+                        <div className="w-full rounded-lg border border-border bg-bg-elevated/50 px-4 py-2.5 text-sm text-text-muted">
+                          {String(editFormData[field.name.toLowerCase()] ?? '-')}
+                        </div>
+                      ) : renderFieldInput(field)}
+                    </div>
+                  );
+                })}
                 {currentFields.length === 0 && (
                   <p className="text-sm text-text-muted">
                     No fields defined. Use "Manage Fields" to add some.

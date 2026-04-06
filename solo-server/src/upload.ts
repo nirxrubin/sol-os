@@ -1,15 +1,36 @@
 import { Router } from 'express';
 import multer from 'multer';
 import fs from 'fs/promises';
-import { createReadStream } from 'fs';
+import { createReadStream, mkdirSync } from 'fs';
 import path from 'path';
+import os from 'os';
 import { Parse } from 'unzipper';
 import { getWorkspacePath, setProjectState, setAnalysisStatus } from './state.js';
 import { analyzeProject } from './analyze/index.js';
 import { createProject, updateProject, upsertContentTypes } from './db/client.js';
 import { sendAnalysisReady } from './email/client.js';
+import { resetProgress, stepStart, stepDone, stepError } from './progress.js';
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200 * 1024 * 1024 } });
+// Stream zip directly to disk — never buffer in RAM.
+// This handles arbitrarily large zips (node_modules included) without OOM.
+// The 2 GB limit is a safety cap; actual extracted source will be far smaller
+// because node_modules is skipped during extraction.
+const TEMP_UPLOAD_DIR = path.join(os.tmpdir(), 'sol-uploads');
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      mkdirSync(TEMP_UPLOAD_DIR, { recursive: true });
+      cb(null, TEMP_UPLOAD_DIR);
+    },
+    filename: (_req, _file, cb) => cb(null, `upload-${Date.now()}.zip`),
+  }),
+  limits: { fileSize: 2 * 1024 * 1024 * 1024 }, // 2 GB cap
+  fileFilter: (_req, file, cb) => {
+    if (file.originalname.toLowerCase().endsWith('.zip')) cb(null, true);
+    else cb(new Error('Only .zip files are accepted'));
+  },
+});
 
 export const uploadRouter = Router();
 
@@ -22,13 +43,16 @@ uploadRouter.post('/upload', upload.single('file'), async (req, res) => {
 
     const workspace = getWorkspacePath();
 
+    // Reset progress tracking for this new upload
+    resetProgress();
+    stepStart('extract', 'Receiving upload…');
+
     // Clear previous workspace
     await fs.rm(workspace, { recursive: true, force: true });
     await fs.mkdir(workspace, { recursive: true });
 
-    // Write zip to temp file then extract
-    const zipPath = path.join(workspace, '__upload.zip');
-    await fs.writeFile(zipPath, req.file.buffer);
+    // Zip is already on disk (diskStorage streamed it there)
+    const zipPath = req.file.path;
 
     // Extract zip
     const extractDir = path.join(workspace, '__extracted');
@@ -44,12 +68,13 @@ uploadRouter.post('/upload', upload.single('file'), async (req, res) => {
           const filePath = entry.path as string;
           const type = entry.type as string;
 
-          // Skip junk
+          // Skip junk — node_modules is the main culprit for huge zips
           if (
             filePath.startsWith('__MACOSX') ||
-            filePath.startsWith('.git/') ||
-            filePath.includes('node_modules/') ||
-            filePath.startsWith('.DS_Store') ||
+            filePath.includes('/.git/') || filePath.startsWith('.git/') ||
+            filePath.includes('/node_modules/') || filePath.includes('node_modules/') ||
+            filePath.includes('/.claude/') || filePath.startsWith('.claude/') ||
+            filePath.includes('/.cursor/') || filePath.startsWith('.cursor/') ||
             filePath.includes('.DS_Store')
           ) {
             entry.autodrain();
@@ -120,20 +145,27 @@ uploadRouter.post('/upload', upload.single('file'), async (req, res) => {
     // Save state (servePath starts as projectRoot, updated after build)
     setProjectState({ projectRoot, servePath: projectRoot, fileTree, fileCount: fileTree.length, entryFile });
     setAnalysisStatus('analyzing');
+    stepDone('extract', `${fileTree.length} files extracted`);
 
     // Extract notification email and project name from request (optional)
-    const notifyEmail = (req.body?.email as string | undefined) ?? null;
+    const notifyEmail = (req.body?.email as string | undefined) ?? 'jaco@techstura.com'; // temp hardcoded for testing
     const isLargeProject = fileTree.length > 50;
+
+    console.log('[upload] req.body:', req.body);
+    console.log('[upload] notifyEmail:', notifyEmail);
+    console.log('[upload] SUPABASE_URL:', process.env.SUPABASE_URL ? '✓' : 'MISSING');
+    console.log('[upload] RESEND_API_KEY:', process.env.RESEND_API_KEY ? '✓' : 'MISSING');
 
     // Create DB record
     let dbProjectId: string | null = null;
     try {
       const slug = path.basename(projectRoot).toLowerCase().replace(/[^a-z0-9]/g, '-');
+      console.log('[upload] creating DB project, slug:', slug);
       const dbProject = await createProject({ name: slug, slug, projectRoot });
       dbProjectId = dbProject.id;
+      console.log('[upload] DB project created:', dbProjectId);
     } catch (err) {
-      // DB unavailable - continue without persistence, don't block upload
-      console.warn('DB project creation failed (non-fatal):', err);
+      console.warn('[upload] DB project creation failed:', err);
     }
 
     // Respond immediately, run analysis async
@@ -161,7 +193,6 @@ uploadRouter.post('/upload', upload.single('file'), async (req, res) => {
 
           if (project.contentTypes?.length > 0) {
             await upsertContentTypes(dbProjectId, project.contentTypes.map((ct: { id: string; name: string; fields: unknown[]; items: unknown[]; sourceBindings?: { file: string; varName: string } }) => ({
-              id: ct.id,
               name: ct.name,
               slug: ct.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
               sourceFile: ct.sourceBindings?.file,
@@ -180,10 +211,12 @@ uploadRouter.post('/upload', upload.single('file'), async (req, res) => {
         await sendAnalysisReady(notifyEmail, project?.name ?? 'your project');
       }
     } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
       console.error('Analysis failed:', err);
       setAnalysisStatus('error');
+      stepError('heuristic', msg.slice(0, 200));
       if (dbProjectId) {
-        updateProject(dbProjectId, { status: 'error', build_error: String(err) }).catch(() => {});
+        updateProject(dbProjectId, { status: 'error', build_error: msg }).catch(() => {});
       }
     }
   } catch (err) {

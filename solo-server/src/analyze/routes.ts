@@ -19,6 +19,7 @@ interface DetectedPage {
   id: string;
   name: string;
   path: string;
+  navigateTo?: string;
   seoStatus: 'complete' | 'partial' | 'missing';
   sections: any[];
 }
@@ -32,6 +33,7 @@ export async function detectSPARoutes(projectRoot: string, fileTree: string[]): 
   );
 
   const allRoutes: Map<string, string> = new Map(); // path → name
+  let isHashRouter = false; // whether this SPA uses hash-based routing
 
   for (const file of routeFiles) {
     const fullPath = path.join(projectRoot, file);
@@ -44,6 +46,13 @@ export async function detectSPARoutes(projectRoot: string, fileTree: string[]): 
 
     // Skip files that don't mention routing
     if (!content.includes('Route') && !content.includes('route') && !content.includes('path')) continue;
+
+    // Detect hash-based routing
+    if (content.includes('location.hash') || content.includes('hashchange') ||
+        content.includes('HashRouter') || content.includes('createHashRouter') ||
+        content.includes('hash: true') || /#\//.test(content)) {
+      isHashRouter = true;
+    }
 
     // Pattern 1: JSX Route elements — <Route path="/about" ...>
     const jsxRoutePattern = /<Route\s+[^>]*path\s*=\s*["']([^"']+)["'][^>]*/g;
@@ -87,6 +96,22 @@ export async function detectSPARoutes(projectRoot: string, fileTree: string[]): 
     }
   }
 
+  // Fallback: if no routes found via code patterns, infer from page file names
+  // e.g. js/pages/about.js → /about "About", js/pages/calculator.js → /calculator "Calculator"
+  if (allRoutes.size === 0) {
+    const PAGE_DIRS = /\/(pages|views|screens|routes)\//i;
+    const SKIP = new Set(['index', 'home', 'auth', 'login', 'signup', 'register', '404', 'error', 'notfound']);
+    for (const f of fileTree) {
+      if (!PAGE_DIRS.test(f)) continue;
+      if (!/\.(jsx?|tsx?)$/.test(f)) continue;
+      const base = f.split('/').pop()!.replace(/\.(jsx?|tsx?)$/, '').toLowerCase();
+      const routePath = base === 'index' || base === 'home' ? '/' : `/${base}`;
+      if (!allRoutes.has(routePath)) {
+        allRoutes.set(routePath, deriveRouteName(routePath));
+      }
+    }
+  }
+
   // Always include home route
   if (!allRoutes.has('/')) {
     allRoutes.set('/', 'Home');
@@ -100,12 +125,24 @@ export async function detectSPARoutes(projectRoot: string, fileTree: string[]): 
     return a[0].localeCompare(b[0]);
   });
 
+  // If we detected page files from a /pages/ directory without explicit router code,
+  // treat it as hash-based (most vanilla JS SPAs use hash routing)
+  if (!isHashRouter && allRoutes.size > 0) {
+    // Check if all route detection came from page file names (no real router code found)
+    // In that case, default to hash routing as the most common vanilla JS pattern
+    isHashRouter = true;
+  }
+
   for (const [routePath, name] of sortedRoutes) {
     const pageId = 'page-' + routePath.replace(/[^a-z0-9]/gi, '-').replace(/^-|-$/g, '') || 'page-home';
+    const navigateTo = isHashRouter
+      ? (routePath === '/' ? '#/' : `#${routePath}`)
+      : routePath;
     pages.push({
       id: pageId,
       name,
       path: routePath,
+      navigateTo,
       seoStatus: routePath === '/' ? 'partial' : 'missing',
       sections: [],
     });

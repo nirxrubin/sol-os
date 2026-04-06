@@ -1,11 +1,11 @@
 import type { DeployBundle } from './types';
 
 /**
- * Sol OS Deploy Bundles
+ * HostaPosta Deploy Bundles
  *
- * Each bundle is a curated stack of providers managed by Sol OS.
+ * Each bundle is a curated stack of providers managed by HostaPosta.
  * The client never needs to create accounts or configure anything -
- * Sol OS's single account handles all provider integrations.
+ * HostaPosta's single account handles all provider integrations.
  *
  * Bundles are designed for different scales:
  * - Starter: Free/lowest-cost, perfect for MVPs and personal projects
@@ -24,9 +24,9 @@ export const deployBundles: DeployBundle[] = [
       { sectorId: 'hosting', sectorName: 'Hosting', providerName: 'Netlify', description: 'Static & serverless hosting' },
       { sectorId: 'domain', sectorName: 'Domain & DNS', providerName: 'Cloudflare', description: 'Free DNS + CDN' },
       { sectorId: 'security', sectorName: 'Security', providerName: "Let's Encrypt", description: 'Free SSL certificates' },
-      { sectorId: 'cms', sectorName: 'CMS', providerName: 'Sol OS Built-in', description: 'File-based content management' },
+      { sectorId: 'cms', sectorName: 'CMS', providerName: 'HostaPosta Built-in', description: 'File-based content management' },
       { sectorId: 'analytics', sectorName: 'Analytics', providerName: 'Plausible', description: 'Privacy-first analytics' },
-      { sectorId: 'seo', sectorName: 'SEO', providerName: 'Sol OS Built-in', description: 'Auto SEO audit & fix' },
+      { sectorId: 'seo', sectorName: 'SEO', providerName: 'HostaPosta Built-in', description: 'Auto SEO audit & fix' },
       { sectorId: 'assets', sectorName: 'Assets', providerName: 'Netlify CDN', description: 'Built-in asset serving' },
     ],
     features: [
@@ -50,10 +50,10 @@ export const deployBundles: DeployBundle[] = [
       { sectorId: 'domain', sectorName: 'Domain & DNS', providerName: 'Cloudflare', description: 'DNS + CDN + DDoS protection' },
       { sectorId: 'database', sectorName: 'Database', providerName: 'Supabase', description: 'Postgres + Auth + Realtime' },
       { sectorId: 'security', sectorName: 'Security', providerName: 'Cloudflare SSL', description: 'SSL + WAF + DDoS' },
-      { sectorId: 'cms', sectorName: 'CMS', providerName: 'Sol OS Built-in', description: 'Visual CMS with API' },
+      { sectorId: 'cms', sectorName: 'CMS', providerName: 'HostaPosta Built-in', description: 'Visual CMS with API' },
       { sectorId: 'analytics', sectorName: 'Analytics', providerName: 'PostHog', description: 'Product analytics + replay' },
-      { sectorId: 'seo', sectorName: 'SEO', providerName: 'Sol OS Built-in', description: 'Full SEO optimization suite' },
-      { sectorId: 'aeo', sectorName: 'AEO', providerName: 'Sol OS Built-in', description: 'AI engine optimization' },
+      { sectorId: 'seo', sectorName: 'SEO', providerName: 'HostaPosta Built-in', description: 'Full SEO optimization suite' },
+      { sectorId: 'aeo', sectorName: 'AEO', providerName: 'HostaPosta Built-in', description: 'AI engine optimization' },
       { sectorId: 'assets', sectorName: 'Assets', providerName: 'Cloudinary', description: 'Auto image optimization' },
     ],
     features: [
@@ -78,10 +78,10 @@ export const deployBundles: DeployBundle[] = [
       { sectorId: 'domain', sectorName: 'Domain & DNS', providerName: 'Route 53', description: 'Enterprise DNS + failover' },
       { sectorId: 'database', sectorName: 'Database', providerName: 'Supabase Pro', description: 'Dedicated Postgres + backups' },
       { sectorId: 'security', sectorName: 'Security', providerName: 'Cloudflare Pro', description: 'Enterprise WAF + bot protection' },
-      { sectorId: 'cms', sectorName: 'CMS', providerName: 'Sol OS Built-in', description: 'Visual CMS with webhooks' },
+      { sectorId: 'cms', sectorName: 'CMS', providerName: 'HostaPosta Built-in', description: 'Visual CMS with webhooks' },
       { sectorId: 'analytics', sectorName: 'Analytics', providerName: 'PostHog', description: 'Full product suite + data warehouse' },
-      { sectorId: 'seo', sectorName: 'SEO', providerName: 'Sol OS Built-in', description: 'Full SEO + schema markup' },
-      { sectorId: 'aeo', sectorName: 'AEO', providerName: 'Sol OS Built-in', description: 'Advanced AI optimization' },
+      { sectorId: 'seo', sectorName: 'SEO', providerName: 'HostaPosta Built-in', description: 'Full SEO + schema markup' },
+      { sectorId: 'aeo', sectorName: 'AEO', providerName: 'HostaPosta Built-in', description: 'Advanced AI optimization' },
       { sectorId: 'assets', sectorName: 'Assets', providerName: 'Cloudinary', description: 'Enterprise media pipeline' },
       { sectorId: 'legal', sectorName: 'Legal', providerName: 'iubenda', description: 'Auto-generated legal pages' },
     ],

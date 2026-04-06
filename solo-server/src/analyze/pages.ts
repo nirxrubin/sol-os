@@ -68,15 +68,27 @@ export async function analyzePages(projectRoot: string, fileTree: string[]): Pro
 }
 
 function derivePageName(filePath: string, title: string): string {
+  const base = path.basename(filePath, '.html');
+  const isIndex = base === 'index';
+
   if (title) {
-    // Use first part of title (before " | " or " - ")
-    const clean = title.split(/\s*[|–—-]\s*/)[0].trim();
-    if (clean.length > 0 && clean.length < 40) return clean;
+    const parts = title.split(/\s*[|–—-]\s*/).map(p => p.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      // Most sites use "Brand - PageName" or "Brand | PageName"
+      // The last segment is always the page-specific name in this pattern
+      // Exception: index page (brand name = site name, use file fallback)
+      if (!isIndex) {
+        const last = parts[parts.length - 1];
+        if (last.length > 0 && last.length < 50) return last;
+      }
+    } else if (parts.length === 1 && !isIndex) {
+      // Single-segment title, not index — use it
+      if (parts[0].length > 0 && parts[0].length < 40) return parts[0];
+    }
   }
 
-  // Derive from file path
-  const base = path.basename(filePath, '.html');
-  if (base === 'index') {
+  // File-based fallback
+  if (isIndex) {
     const dir = path.dirname(filePath);
     if (dir === '.') return 'Home';
     return capitalize(path.basename(dir));

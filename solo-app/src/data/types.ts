@@ -1,11 +1,16 @@
 export type AppView = 'landing' | 'analyzing' | 'dashboard';
 export type MainView = 'page-editor' | 'cms-table' | 'tech-detail';
 export type ThemeMode = 'dark' | 'light';
+export type DashboardTab = 'editor' | 'content' | 'settings' | 'insights';
 
 export interface Page {
   id: string;
   name: string;
   path: string;
+  /** Actual URL fragment to load this page in the preview iframe.
+   *  Hash SPAs: "#/blog", pushState SPAs: "/blog", file-based: "/blog.html"
+   *  If absent, falls back to /preview{path} */
+  navigateTo?: string;
   seoStatus: 'complete' | 'partial' | 'missing';
   sections: Section[];
 }
@@ -23,7 +28,7 @@ export interface ContentBinding {
   fieldName: string;
 }
 
-export type ContentFieldType = 'text' | 'richtext' | 'image' | 'date' | 'url' | 'number' | 'boolean' | 'select' | 'email';
+export type ContentFieldType = 'text' | 'richtext' | 'image' | 'date' | 'url' | 'number' | 'boolean' | 'select' | 'email' | 'slug';
 
 export interface ContentField {
   id: string;
@@ -35,6 +40,7 @@ export interface ContentField {
 export interface ContentType {
   id: string;
   name: string;
+  varName?: string;  // JS variable name from source (e.g. "products", "blogPosts")
   fields: ContentField[];
   items: ContentItem[];
   linkedPages: string[];
@@ -117,6 +123,40 @@ export interface ReadinessItem {
   automation: 'automated' | 'guided' | 'manual';
 }
 
+export interface AILaunchRecommendation {
+  id: string;
+  label: string;
+  description: string;
+  priority: 'high' | 'medium' | 'low';
+  sector: string;
+}
+
+export interface AIInsights {
+  businessSummary: string;
+  businessType: string;
+  targetAudience: string;
+  launchRecommendations: AILaunchRecommendation[];
+  contentGaps: { name: string; reason: string }[];
+  pageGaps: { name: string; path: string; reason: string }[];
+  seoInsights: string[];
+}
+
+export type LimitWarningType =
+  | 'rate_limit'
+  | 'overloaded'
+  | 'budget'
+  | 'timeout'
+  | 'context_window'
+  | 'auth'
+  | 'no_api_key'
+  | 'unknown';
+
+export interface LimitWarning {
+  type: LimitWarningType;
+  title: string;
+  message: string;
+}
+
 export interface Project {
   name: string;
   url: string;
@@ -126,6 +166,9 @@ export interface Project {
   sectors: TechSector[];
   readinessItems: ReadinessItem[];
   readinessScore: number;
+  aiInsights?: AIInsights;
+  /** Set when AI analysis was interrupted or skipped due to a limit/error */
+  limitWarning?: LimitWarning;
 }
 
 export interface UploadResult {

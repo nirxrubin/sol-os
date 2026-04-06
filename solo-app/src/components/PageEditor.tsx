@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Monitor, Tablet, Smartphone, Image, X, Bold, Italic, Link2, Strikethrough, Code, Highlighter, RemoveFormatting } from 'lucide-react';
-import { Database } from 'lucide-react';
+import { Monitor, Tablet, Smartphone, Image, X, Bold, Italic, Link2, Strikethrough, Code, Highlighter, RemoveFormatting, Pencil, Database, Eye, Layers } from 'lucide-react';
 import type { Page, ContentType, ContentItem } from '../data/types';
 import { pageContents } from '../data/pageContent';
 import type { EditableElement, PageSection, PageContent } from '../data/pageContent';
@@ -12,6 +11,7 @@ interface PageEditorProps {
   onOpenCMSItem?: (contentTypeId: string, itemId: string) => void;
   isImported?: boolean;
   previewVersion?: number;
+  onNavigateTo?: (href: string) => void;
 }
 
 const seoStatusConfig: Record<
@@ -400,9 +400,39 @@ function gridColsClass(desktopCols: number, breakpoint: 'desktop' | 'tablet' | '
   return `grid-cols-${desktopCols}`;
 }
 
+// ─── Preview origin ───────────────────────────────────────────────
+// The preview runs on a dedicated server (default: localhost:3002) served
+// from / — no subpath prefix. This matches the production SaaS model where
+// each project gets its own subdomain: {id}.preview.hostaposta.app
+//
+// Override via VITE_PREVIEW_ORIGIN env var for staging/production.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const PREVIEW_ORIGIN = (import.meta as any).env?.VITE_PREVIEW_ORIGIN ?? 'http://localhost:3002';
+
+// ─── Iframe URL resolution ────────────────────────────────────────
+// The project is served from / on PREVIEW_ORIGIN, so URLs are clean:
+//   hash SPA  (navigateTo = "#calculator") → http://localhost:3002/#calculator
+//   pushState (navigateTo = "/about")      → http://localhost:3002/about
+//   multi-page (no navigateTo)             → http://localhost:3002/about
+
+function iframeSrcFor(page: Page): string {
+  let nav = page.navigateTo;
+  if (nav) {
+    // Strip legacy /preview prefix that old AI analyses may have baked in
+    if (nav.startsWith('/preview')) nav = nav.slice('/preview'.length) || '/';
+    if (!nav) nav = '/';
+    if (nav.startsWith('#'))    return `${PREVIEW_ORIGIN}/${nav}`;   // hash SPA
+    if (nav.startsWith('/'))    return `${PREVIEW_ORIGIN}${nav}`;    // pushState / file
+    if (nav.includes('.html'))  return `${PREVIEW_ORIGIN}/${nav}`;   // explicit .html
+    return `${PREVIEW_ORIGIN}/${nav}`;                               // relative segment
+  }
+  const p = page.path;
+  return `${PREVIEW_ORIGIN}${p === '/' ? '/' : p}`;
+}
+
 // ─── Main Component ───────────────────────────────────────────────
 
-export default function PageEditor({ page, contentTypes, onOpenCMSItem, isImported, previewVersion }: PageEditorProps) {
+export default function PageEditor({ page, contentTypes, onOpenCMSItem, isImported, previewVersion, onNavigateTo }: PageEditorProps) {
   const seo = seoStatusConfig[page.seoStatus];
   const pageContent = pageContents.find((pc: PageContent) => pc.pageId === page.id);
 
@@ -412,6 +442,28 @@ export default function PageEditor({ page, contentTypes, onOpenCMSItem, isImport
   const [imageOverrides, setImageOverrides] = useState<Record<string, { src: string; alt?: string }>>({});
   const [altTextDraft, setAltTextDraft] = useState('');
   const [breakpoint, setBreakpoint] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [editMode, setEditMode] = useState(false);
+  const [cmsClickInfo, setCmsClickInfo] = useState<{
+    field: string | null;
+    staticRef: string | null;
+    image: string | null;
+    value: string;
+    rect: { top: number; left: number; width: number; height: number };
+  } | null>(null);
+
+  // ── Bridge-based editor state (cross-origin postMessage) ──────────
+  // Used for imported projects on port 3002 where iframe.contentDocument is blocked.
+  const [bridgeSelection, setBridgeSelection] = useState<{
+    selector: string;
+    tagName: string;
+    isImage: boolean;
+    isText: boolean;
+    rect: { top: number; left: number; width: number; height: number };
+  } | null>(null);
+  const [bridgeToolbarPos, setBridgeToolbarPos] = useState({ top: 0, left: 0, width: 0, visible: false });
+  const [bridgeSaveStatus, setBridgeSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const pendingBridgeEditsRef = useRef<Map<string, { page: string; selector: string; type: 'text'; content: string }>>(new Map());
+  const bridgeSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef<HTMLDivElement | null>(null);
@@ -419,9 +471,42 @@ export default function PageEditor({ page, contentTypes, onOpenCMSItem, isImport
   const activeImageIdRef = useRef<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Iframe editing hook (only active when isImported)
+  // Iframe editing hook — only active when isImported AND edit mode is on
   const iframePage = isImported ? page.path : undefined;
-  const iframeEditor = useIframeEditor(iframeRef, iframePage, isImported ? contentTypes : undefined);
+  const iframeEditor = useIframeEditor(iframeRef, iframePage, isImported ? contentTypes : undefined, page.navigateTo, isImported ? editMode : false);
+
+  // Helper: translate iframe-internal rect to parent-frame coordinates for toolbar
+  const updateBridgeToolbar = useCallback((rect: { top: number; left: number; width: number; height: number }) => {
+    const iframeEl = iframeRef.current;
+    if (!iframeEl) return;
+    const iframeRect = iframeEl.getBoundingClientRect();
+    setBridgeToolbarPos({ top: iframeRect.top + rect.top, left: iframeRect.left + rect.left, width: rect.width, visible: true });
+  }, [iframeRef]);
+
+  // Flush bridge edits to server (debounced)
+  const flushBridgeEdits = useCallback(async () => {
+    if (pendingBridgeEditsRef.current.size === 0) return;
+    const edits = Array.from(pendingBridgeEditsRef.current.values());
+    pendingBridgeEditsRef.current.clear();
+    setBridgeSaveStatus('saving');
+    try {
+      const res = await fetch('/api/source/edit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ edits, source: 'canvas' }),
+      });
+      const data = await res.json();
+      setBridgeSaveStatus(data.ok ? 'saved' : 'error');
+      if (data.ok) setTimeout(() => setBridgeSaveStatus('idle'), 2000);
+    } catch {
+      setBridgeSaveStatus('error');
+    }
+  }, []);
+
+  const scheduleBridgeSave = useCallback(() => {
+    if (bridgeSaveTimerRef.current) clearTimeout(bridgeSaveTimerRef.current);
+    bridgeSaveTimerRef.current = setTimeout(flushBridgeEdits, 800);
+  }, [flushBridgeEdits]);
 
   // Reload iframe after CMS sync + rebuild (previewVersion bumped by App.tsx)
   useEffect(() => {
@@ -436,6 +521,111 @@ export default function PageEditor({ page, contentTypes, onOpenCMSItem, isImport
       requestAnimationFrame(() => { iframe.src = src; });
     }
   }, [previewVersion, isImported]);
+
+  // Send edit-mode toggle to bridge when editMode changes
+  useEffect(() => {
+    if (!isImported) return;
+    try {
+      iframeRef.current?.contentWindow?.postMessage(
+        { type: 'sol:edit-mode', enabled: editMode },
+        '*'
+      );
+    } catch { /* cross-origin guard */ }
+    if (!editMode) {
+      setBridgeSelection(null);
+      setBridgeToolbarPos(p => ({ ...p, visible: false }));
+    }
+  }, [editMode, isImported]);
+
+  // Listen for postMessages from the bridge script (cross-origin iframe on port 3002)
+  useEffect(() => {
+    if (!isImported) return;
+    const handler = (e: MessageEvent) => {
+      if (!e.data || typeof e.data !== 'object') return;
+
+      switch (e.data.type) {
+        // Legacy: annotated CMS field click (data-sol-field etc.)
+        case 'sol:element-click':
+          setCmsClickInfo({
+            field: e.data.field ?? null,
+            staticRef: e.data.staticRef ?? null,
+            image: e.data.image ?? null,
+            value: e.data.value ?? '',
+            rect: e.data.rect ?? { top: 0, left: 0, width: 0, height: 0 },
+          });
+          break;
+
+        // Bridge ready — re-send current edit mode
+        case 'sol:bridge-ready':
+          if (editMode) {
+            try { iframeRef.current?.contentWindow?.postMessage({ type: 'sol:edit-mode', enabled: true }, '*'); } catch { /* ignore */ }
+          }
+          break;
+
+        // Element selected in design mode → show floating toolbar
+        case 'sol:element-selected':
+          setBridgeSelection({
+            selector: e.data.selector,
+            tagName: e.data.tagName,
+            isImage: e.data.isImage,
+            isText: e.data.isText,
+            rect: e.data.rect,
+          });
+          updateBridgeToolbar(e.data.rect);
+          break;
+
+        // Element deselected
+        case 'sol:element-deselected':
+          setBridgeSelection(null);
+          setBridgeToolbarPos(p => ({ ...p, visible: false }));
+          break;
+
+        // Scroll/resize updated element rect → reposition toolbar
+        case 'sol:rect-update':
+          if (bridgeSelection) updateBridgeToolbar(e.data.rect);
+          break;
+
+        // Text content changed inline → queue save
+        case 'sol:content-change': {
+          const pageFile = page.path === '/' ? '/index.html' : page.path.endsWith('.html') ? page.path : page.path + '.html';
+          pendingBridgeEditsRef.current.set(e.data.selector, {
+            page: pageFile,
+            selector: e.data.selector,
+            type: 'text',
+            content: e.data.html,
+          });
+          scheduleBridgeSave();
+          if (e.data.rect) updateBridgeToolbar(e.data.rect);
+          break;
+        }
+
+        // Navigation requested in design mode → reflect in sidebar (don't navigate iframe)
+        case 'sol:navigate-requested':
+          if (e.data.href) onNavigateTo?.(e.data.href);
+          break;
+      }
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [isImported, editMode, bridgeSelection, page.path, updateBridgeToolbar, scheduleBridgeSave, onNavigateTo]);
+
+  // Dismiss CMS click popover when edit mode is off or page changes
+  useEffect(() => {
+    setCmsClickInfo(null);
+  }, [editMode, page.id]);
+
+  // Listen for CMS item saves → forward as sol:update to iframe for live preview
+  useEffect(() => {
+    if (!isImported) return;
+    const handler = (e: Event) => {
+      const { field, value } = (e as CustomEvent<{ field: string; value: string }>).detail;
+      try {
+        iframeRef.current?.contentWindow?.postMessage({ type: 'sol:update', field, value }, '*');
+      } catch { /* ignore */ }
+    };
+    window.addEventListener('sol:cms-update', handler);
+    return () => window.removeEventListener('sol:cms-update', handler);
+  }, [isImported]);
 
   // Scroll to top & clear selection when page changes
   useEffect(() => {
@@ -1065,21 +1255,78 @@ export default function PageEditor({ page, contentTypes, onOpenCMSItem, isImport
       <div className="flex shrink-0 items-center justify-between border-b border-border bg-bg-sidebar px-4 py-2">
         <div className="flex items-center gap-2">
           <h2 className="font-heading text-sm font-semibold text-text">{page.name}</h2>
-          <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${seo.bg} ${seo.text}`}>
-            {seo.label}
-          </span>
-          {isImported && iframeEditor.saveStatus !== 'idle' && (
+          {/* SEO dot indicator */}
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              page.seoStatus === 'complete' ? 'bg-status-green' :
+              page.seoStatus === 'partial' ? 'bg-status-orange' : 'bg-status-red'
+            }`}
+            title={`SEO: ${page.seoStatus}`}
+          />
+          {/* Live iframe URL — helps diagnose routing issues */}
+          {isImported && (
+            <span
+              className="rounded px-1.5 py-0.5 font-mono text-[10px] text-text-muted"
+              style={{ backgroundColor: 'var(--color-border)' }}
+              title="URL loaded in the preview iframe"
+            >
+              {iframeSrcFor(page)}
+            </span>
+          )}
+          {isImported && (bridgeSaveStatus !== 'idle' || iframeEditor.saveStatus !== 'idle') && (
             <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-opacity ${
-              iframeEditor.saveStatus === 'saving' ? 'bg-accent/10 text-accent' :
-              iframeEditor.saveStatus === 'saved' ? 'bg-status-green/10 text-status-green' :
+              (bridgeSaveStatus === 'saving' || iframeEditor.saveStatus === 'saving') ? 'bg-accent/10 text-accent' :
+              (bridgeSaveStatus === 'saved' || iframeEditor.saveStatus === 'saved') ? 'bg-status-green/10 text-status-green' :
               'bg-status-red/10 text-status-red'
             }`}>
-              {iframeEditor.saveStatus === 'saving' ? 'Saving...' :
-               iframeEditor.saveStatus === 'saved' ? 'Saved' : 'Save error'}
+              {(bridgeSaveStatus === 'saving' || iframeEditor.saveStatus === 'saving') ? 'Saving...' :
+               (bridgeSaveStatus === 'saved' || iframeEditor.saveStatus === 'saved') ? 'Saved' : 'Save error'}
             </span>
           )}
         </div>
         <div className="flex items-center gap-1">
+          {/* Preview / Design mode toggle — only for imported projects */}
+          {isImported && (
+            <>
+              <div
+                className="flex h-7 items-center rounded-full p-0.5"
+                style={{ backgroundColor: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}
+              >
+                <button
+                  onClick={() => setEditMode(false)}
+                  className={`flex h-6 items-center gap-1 rounded-full px-2.5 text-[11px] font-medium transition-all ${
+                    !editMode ? 'bg-accent text-bg shadow-sm' : 'text-text-muted hover:text-text'
+                  }`}
+                  title="Preview mode — clean view of the site"
+                >
+                  <Eye size={11} />
+                  <span>Preview</span>
+                </button>
+                <button
+                  onClick={() => setEditMode(true)}
+                  className={`flex h-6 items-center gap-1 rounded-full px-2.5 text-[11px] font-medium transition-all ${
+                    editMode ? 'bg-accent text-bg shadow-sm' : 'text-text-muted hover:text-text'
+                  }`}
+                  title="Design mode — edit content and see CMS bindings"
+                >
+                  <Pencil size={11} />
+                  <span>Design</span>
+                </button>
+              </div>
+              {/* CMS collections indicator */}
+              {contentTypes && contentTypes.length > 0 && (
+                <div
+                  className="flex h-6 items-center gap-1 rounded-full px-2 text-[10px] font-medium"
+                  style={{ backgroundColor: editMode ? 'rgba(99,102,241,0.12)' : 'transparent', color: editMode ? '#6366f1' : 'var(--color-text-muted)', transition: 'all 0.2s' }}
+                  title={`${contentTypes.length} CMS collection${contentTypes.length > 1 ? 's' : ''} loaded`}
+                >
+                  <Layers size={10} />
+                  <span>{contentTypes.length} CMS</span>
+                </div>
+              )}
+              <div className="mx-1 h-4 w-px bg-border" />
+            </>
+          )}
           {([
             { key: 'desktop', icon: <Monitor size={15} />, label: 'Desktop' },
             { key: 'tablet', icon: <Tablet size={15} />, label: 'Tablet' },
@@ -1107,8 +1354,11 @@ export default function PageEditor({ page, contentTypes, onOpenCMSItem, isImport
           className="relative flex-1 overflow-hidden"
           style={{ backgroundColor: breakpoint === 'desktop' ? '#fff' : '#E8E4DF' }}
           onClick={(e) => {
-            // Click on canvas background → deselect
-            if (e.target === e.currentTarget) iframeEditor.deselect();
+            // Click on canvas background → deselect & dismiss CMS popover
+            if (e.target === e.currentTarget) {
+              iframeEditor.deselect();
+              setCmsClickInfo(null);
+            }
           }}
         >
           <div
@@ -1117,7 +1367,7 @@ export default function PageEditor({ page, contentTypes, onOpenCMSItem, isImport
           >
             <iframe
               ref={iframeRef}
-              src={`/preview${page.path === '/' ? '/' : page.path}`}
+              src={iframeSrcFor(page)}
               className="h-full w-full border-0"
               style={{
                 boxShadow: breakpoint !== 'desktop' ? '0 4px 24px -4px rgba(0,0,0,0.15)' : 'none',
@@ -1127,52 +1377,187 @@ export default function PageEditor({ page, contentTypes, onOpenCMSItem, isImport
             />
           </div>
 
-          {/* Floating Text Toolbar */}
-          {iframeEditor.selection?.isText && iframeEditor.toolbarPos.visible && (
+          {/* Floating Text Toolbar — shown when design mode + text element selected */}
+          {editMode && (bridgeSelection?.isText && bridgeToolbarPos.visible || iframeEditor.selection?.isText && iframeEditor.toolbarPos.visible) && (() => {
+            const pos = bridgeSelection?.isText && bridgeToolbarPos.visible ? bridgeToolbarPos : iframeEditor.toolbarPos;
+            const sendFormat = (command: string, value?: string) => {
+              // Cross-origin: send via postMessage to bridge
+              iframeRef.current?.contentWindow?.postMessage({ type: 'sol:exec-format', command, value }, '*');
+              // Same-origin fallback
+              iframeEditor.execFormat(command, value);
+            };
+            return (
+              <div
+                className="pointer-events-auto fixed z-[9999] flex items-center gap-0.5 rounded-lg px-1.5 py-1 shadow-xl"
+                style={{
+                  backgroundColor: '#1C1917',
+                  color: '#fff',
+                  top: `${Math.max(4, pos.top - 44)}px`,
+                  left: `${pos.left + pos.width / 2}px`,
+                  transform: 'translateX(-50%)',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                {[
+                  { icon: <Bold size={14} />, title: 'Bold', action: () => sendFormat('bold') },
+                  { icon: <Italic size={14} />, title: 'Italic', action: () => sendFormat('italic') },
+                  { icon: <Strikethrough size={14} />, title: 'Strikethrough', action: () => sendFormat('strikeThrough') },
+                  { icon: <Code size={14} />, title: 'Code', action: () => sendFormat('formatBlock', 'pre') },
+                  { icon: <Link2 size={14} />, title: 'Add Link', action: () => {
+                    const url = prompt('Enter URL:');
+                    if (url) sendFormat('createLink', url);
+                  }},
+                  { icon: <Highlighter size={14} />, title: 'Highlight', action: () => sendFormat('hiliteColor', '#FEF08A') },
+                  { icon: <RemoveFormatting size={14} />, title: 'Clear formatting', action: () => sendFormat('removeFormat') },
+                ].map((btn, i) => (
+                  <button
+                    key={i}
+                    className="flex h-7 w-7 items-center justify-center rounded-md text-white/90 transition-colors hover:bg-white/15 hover:text-white"
+                    title={btn.title}
+                    onMouseDown={(e) => { e.preventDefault(); btn.action(); }}
+                  >
+                    {btn.icon}
+                  </button>
+                ))}
+              </div>
+            );
+          })()}
+
+          {/* CMS / Static element click popover (from __sol_bridge) */}
+          {editMode && cmsClickInfo && (
             <div
-              className="pointer-events-auto fixed z-[9999] flex items-center gap-0.5 rounded-lg px-1.5 py-1 shadow-xl"
+              className="pointer-events-auto fixed z-[9998] w-64 rounded-lg shadow-2xl"
               style={{
                 backgroundColor: '#1C1917',
-                color: '#fff',
-                top: `${Math.max(4, iframeEditor.toolbarPos.top - 44)}px`,
-                left: `${iframeEditor.toolbarPos.left + iframeEditor.toolbarPos.width / 2}px`,
-                transform: 'translateX(-50%)',
-                whiteSpace: 'nowrap',
+                color: '#FAF9F7',
+                top: `${Math.min(cmsClickInfo.rect.top + cmsClickInfo.rect.height + 8, window.innerHeight - 180)}px`,
+                left: `${Math.min(cmsClickInfo.rect.left, window.innerWidth - 272)}px`,
               }}
-              onMouseDown={(e) => e.preventDefault()}
+              onClick={(e) => e.stopPropagation()}
             >
-              {[
-                { icon: <Bold size={14} />, title: 'Bold', action: () => iframeEditor.execFormat('bold') },
-                { icon: <Italic size={14} />, title: 'Italic', action: () => iframeEditor.execFormat('italic') },
-                { icon: <Strikethrough size={14} />, title: 'Strikethrough', action: () => iframeEditor.execFormat('strikeThrough') },
-                { icon: <Code size={14} />, title: 'Code', action: () => {
-                  try {
-                    const doc = iframeRef.current?.contentDocument;
-                    const sel = doc?.getSelection();
-                    if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
-                      const range = sel.getRangeAt(0);
-                      const code = doc!.createElement('code');
-                      code.style.cssText = 'background:#f1f0ee;padding:1px 4px;border-radius:3px;font-family:monospace;font-size:0.9em;';
-                      range.surroundContents(code);
-                    }
-                  } catch { /* ignore */ }
-                }},
-                { icon: <Link2 size={14} />, title: 'Add Link', action: () => {
-                  const url = prompt('Enter URL:');
-                  if (url) iframeEditor.execFormat('createLink', url);
-                }},
-                { icon: <Highlighter size={14} />, title: 'Highlight', action: () => iframeEditor.execFormat('hiliteColor', '#FEF08A') },
-                { icon: <RemoveFormatting size={14} />, title: 'Clear formatting', action: () => iframeEditor.execFormat('removeFormat') },
-              ].map((btn, i) => (
-                <button
-                  key={i}
-                  className="flex h-7 w-7 items-center justify-center rounded-md text-white/90 transition-colors hover:bg-white/15 hover:text-white"
-                  title={btn.title}
-                  onMouseDown={(e) => { e.preventDefault(); btn.action(); }}
-                >
-                  {btn.icon}
+              <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
+                <div className="flex items-center gap-2">
+                  {cmsClickInfo.field ? (
+                    <>
+                      <Database size={12} className="text-amber-400" />
+                      <span className="text-[11px] font-semibold text-amber-400">CMS Field</span>
+                      <span className="text-[10px] text-gray-500">{cmsClickInfo.field}</span>
+                    </>
+                  ) : cmsClickInfo.image ? (
+                    <>
+                      <Image size={12} className="text-blue-400" />
+                      <span className="text-[11px] font-semibold text-blue-400">CMS Image</span>
+                      <span className="text-[10px] text-gray-500">{cmsClickInfo.image}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Pencil size={12} className="text-gray-400" />
+                      <span className="text-[11px] font-semibold text-gray-300">Static Content</span>
+                      {cmsClickInfo.staticRef && (
+                        <span className="text-[10px] text-gray-500">{cmsClickInfo.staticRef.split(':').pop()}</span>
+                      )}
+                    </>
+                  )}
+                </div>
+                <button className="text-gray-600 hover:text-gray-300" onClick={() => setCmsClickInfo(null)}>
+                  <X size={12} />
                 </button>
-              ))}
+              </div>
+              <div className="px-3 py-2.5">
+                {cmsClickInfo.field ? (
+                  <div>
+                    <p className="mb-2 text-[10px] text-gray-500">
+                      Editing this updates the CMS collection item.
+                    </p>
+                    <button
+                      className="w-full rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+                      style={{ backgroundColor: '#D4A843', color: '#1C1917' }}
+                      onClick={() => {
+                        const parts = cmsClickInfo.field!.split('.');
+                        const varName = parts[0];
+                        const index = parseInt(parts[1]);
+                        const ct = contentTypes?.find(c =>
+                          c.varName === varName ||
+                          (c as any).sourceBindings?.varName === varName ||
+                          c.id === varName ||
+                          c.id === varName.toLowerCase()
+                        );
+                        if (ct && !isNaN(index)) {
+                          const item = ct.items[index];
+                          if (item && onOpenCMSItem) onOpenCMSItem(ct.id, item.id);
+                        }
+                        setCmsClickInfo(null);
+                      }}
+                    >
+                      Open in CMS
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="mb-2 text-[10px] text-gray-500">
+                      Hardcoded text — click to edit inline.
+                    </p>
+                    <p className="truncate rounded bg-white/5 px-2 py-1 text-xs text-gray-300">
+                      {cmsClickInfo.value.slice(0, 80)}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ── Design Mode: CMS collections panel (bottom-right) ── */}
+          {editMode && contentTypes && contentTypes.length > 0 && (
+            <div
+              className="pointer-events-auto absolute bottom-4 right-4 z-[9990] w-56 overflow-hidden rounded-xl shadow-2xl"
+              style={{ backgroundColor: '#1C1917', color: '#FAF9F7', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
+                <div className="flex items-center gap-1.5">
+                  <Layers size={11} className="text-indigo-400" />
+                  <span className="text-[11px] font-semibold text-indigo-300">CMS Collections</span>
+                </div>
+                <span className="rounded-full bg-indigo-500/20 px-1.5 py-0.5 text-[9px] font-bold text-indigo-300">
+                  {contentTypes.length}
+                </span>
+              </div>
+              <div className="max-h-48 overflow-y-auto py-1">
+                {contentTypes.map((ct) => (
+                  <button
+                    key={ct.id}
+                    className="flex w-full items-center justify-between px-3 py-1.5 text-left transition-colors hover:bg-white/5"
+                    onClick={() => { onOpenCMSItem?.(ct.id, ct.items[0]?.id ?? ''); }}
+                    title={`Open ${ct.name} in CMS editor`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Database size={10} className="text-gray-500" />
+                      <span className="text-[11px] text-gray-200">{ct.name}</span>
+                    </div>
+                    <span className="text-[10px] text-gray-500">{ct.items.length}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="border-t border-white/10 px-3 py-1.5">
+                <p className="text-[9px] leading-tight text-gray-600">
+                  Click any element to edit · Changes sync to CMS
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ── Design Mode: top hint bar ── */}
+          {editMode && !cmsClickInfo && !iframeEditor.selection && (
+            <div
+              className="pointer-events-none absolute inset-x-0 top-0 z-[9989] flex justify-center"
+            >
+              <div
+                className="mt-3 flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] shadow-lg"
+                style={{ backgroundColor: 'rgba(28,25,23,0.85)', color: '#FAF9F7', backdropFilter: 'blur(8px)' }}
+              >
+                <Pencil size={10} className="text-gray-400" />
+                <span className="text-gray-300">Click any text to edit · CMS elements highlighted below</span>
+              </div>
             </div>
           )}
 

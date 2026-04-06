@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Circle, Send, Sparkles, Lock } from 'lucide-react';
-import SolLogo from './SolLogo';
+import HpLogo from './HpLogo';
 import type { TechSector } from '../data/types';
 import { deployBundles } from '../data/bundles';
 
@@ -35,7 +35,7 @@ export default function TechDetailView({ sector }: TechDetailViewProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
-      content: `I'm your ${sector.name} agent. I can help you understand and configure ${sector.name.toLowerCase()} for your project. Sol OS manages all provider accounts - just pick your deploy bundle and I'll handle the rest.`,
+      content: `I'm your ${sector.name} agent. I can help you understand and configure ${sector.name.toLowerCase()} for your project. HostaPosta manages all provider accounts — just pick your publish bundle and I'll handle the rest.`,
     },
   ]);
   const [inputValue, setInputValue] = useState('');
@@ -55,7 +55,7 @@ export default function TechDetailView({ sector }: TechDetailViewProps) {
     setMessages([
       {
         role: 'assistant',
-        content: `I'm your ${sector.name} agent. I can help you understand and configure ${sector.name.toLowerCase()} for your project. Sol OS manages all provider accounts - just pick your deploy bundle and I'll handle the rest.`,
+        content: `I'm your ${sector.name} agent. I can help you understand and configure ${sector.name.toLowerCase()} for your project. HostaPosta manages all provider accounts — just pick your publish bundle and I'll handle the rest.`,
       },
     ]);
     setInputValue('');
@@ -92,7 +92,7 @@ export default function TechDetailView({ sector }: TechDetailViewProps) {
       if (prompt === 'Set up automatically') {
         addMessage({
           role: 'assistant',
-          content: `${sector.name} will be configured automatically when you deploy. Sol OS manages the provider account and handles all setup steps - no action needed from you.\n\nJust click "Deploy" in the top bar and choose your bundle. Each bundle includes a ${sector.name.toLowerCase()} provider optimized for that tier.`,
+          content: `${sector.name} will be configured automatically when you deploy. HostaPosta manages the provider account and handles all setup steps — no action needed from you.\n\nJust click "Publish" in the top bar and choose your bundle. Each bundle includes a ${sector.name.toLowerCase()} provider optimized for that tier.`,
         });
       } else if (prompt === 'What does this do?') {
         const providerList = bundleAssignments
@@ -100,13 +100,13 @@ export default function TechDetailView({ sector }: TechDetailViewProps) {
           .join('\n');
         addMessage({
           role: 'assistant',
-          content: `${sector.description}\n\nHere's what's included in each bundle:\n\n${providerList || 'No providers configured yet.'}\n\nSol OS manages all accounts - you never need to sign up with any provider directly.`,
+          content: `${sector.description}\n\nHere's what's included in each bundle:\n\n${providerList || 'No providers configured yet.'}\n\nHostaPosta manages all accounts — you never need to sign up with any provider directly.`,
         });
       } else if (prompt === 'Check requirements') {
         const completed = sector.tasks.filter((t) => t.completed).length;
         addMessage({
           role: 'assistant',
-          content: `${sector.name} status: ${completed}/${sector.tasks.length} tasks completed.\n\n${sector.tasks.map((t) => `${t.completed ? '✓' : '○'} ${t.label}`).join('\n')}\n\nAll auto tasks will be handled during deployment. No manual action required - Sol OS takes care of it.`,
+          content: `${sector.name} status: ${completed}/${sector.tasks.length} tasks completed.\n\n${sector.tasks.map((t) => `${t.completed ? '✓' : '○'} ${t.label}`).join('\n')}\n\nAll auto tasks will be handled during publishing. No manual action required — HostaPosta takes care of it.`,
         });
       }
     }, 1000);
@@ -153,7 +153,7 @@ export default function TechDetailView({ sector }: TechDetailViewProps) {
         <div className="mb-6 flex items-center gap-2 rounded-lg bg-accent/5 border border-accent/15 px-4 py-3">
           <Lock className="h-3.5 w-3.5 text-accent" />
           <p className="text-xs text-text-secondary">
-            <span className="font-medium text-accent">Managed by Sol OS</span>
+            <span className="font-medium text-accent">Managed by HostaPosta</span>
             {' '}- Provider account and configuration handled automatically
           </p>
         </div>
@@ -265,13 +265,13 @@ export default function TechDetailView({ sector }: TechDetailViewProps) {
         {/* Chat Header */}
         <div className="flex items-center gap-3 rounded-t-xl border-b border-border bg-bg-card px-4 py-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
-            <SolLogo className="h-4 w-auto text-accent" />
+            <HpLogo className="h-4 w-auto text-accent" />
           </div>
           <div>
             <h3 className="font-heading text-sm font-semibold text-text">
               {sector.name} Agent
             </h3>
-            <p className="text-[11px] text-text-muted">Managed by Sol OS</p>
+            <p className="text-[11px] text-text-muted">Managed by HostaPosta</p>
           </div>
         </div>
 

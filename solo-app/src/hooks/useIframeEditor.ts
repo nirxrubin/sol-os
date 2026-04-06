@@ -61,6 +61,8 @@ export function useIframeEditor(
   iframeRef: React.RefObject<HTMLIFrameElement | null>,
   pagePath?: string,
   contentTypes?: ContentType[],
+  navigateTo?: string,
+  enabled?: boolean,
 ) {
   const [selection, setSelection] = useState<IframeSelection | null>(null);
   const [toolbarPos, setToolbarPos] = useState<ToolbarPosition>({ top: 0, left: 0, width: 0, visible: false });
@@ -84,13 +86,17 @@ export function useIframeEditor(
     });
   }, [iframeRef]);
 
-  // Resolve page path for edits - map "/" to "/index.html"
+  // Resolve which source file to write edits to.
+  // SPA (hash routing): all pages are rendered by index.html — edits target index.html.
+  // Multi-page HTML: each page has its own .html file.
   const resolvePageFile = useCallback((p?: string): string => {
+    // Hash-based SPA: navigateTo starts with "#" — all content lives in index.html
+    if (navigateTo?.startsWith('#')) return '/index.html';
     if (!p) return '/index.html';
     if (p === '/') return '/index.html';
     if (p.endsWith('.html')) return p;
     return p + '.html';
-  }, []);
+  }, [navigateTo]);
 
   // Flush pending edits to server (source files)
   const flushEdits = useCallback(async () => {
@@ -115,12 +121,18 @@ export function useIframeEditor(
     saveTimerRef.current = setTimeout(flushEdits, 800);
   }, [flushEdits]);
 
+  const enabledRef = useRef(enabled);
+  enabledRef.current = enabled;
+
   const handleLoad = useCallback(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
 
     // Clean up previous bridge
     cleanupRef.current?.();
+
+    // Don't initialize the editor bridge unless edit mode is active
+    if (!enabledRef.current) return;
 
     let doc: Document;
     try {
@@ -143,7 +155,7 @@ export function useIframeEditor(
           setToolbarPos((p) => ({ ...p, visible: false }));
         }
       },
-      onContentChange: (selector, _element, html) => {
+      onContentChange: (selector, element, html) => {
         const pageFile = resolvePageFile(pagePathRef.current);
         pendingEditsRef.current.set(selector, {
           page: pageFile,
@@ -152,6 +164,15 @@ export function useIframeEditor(
           content: html,
         });
         scheduleSave();
+
+        // CMS reverse-sync: if this element is bound to a sol field, update CMS state
+        const solField = (element as HTMLElement)?.dataset?.solField;
+        if (solField) {
+          const plainText = (element as HTMLElement).textContent ?? '';
+          window.dispatchEvent(new CustomEvent('sol:field-changed', {
+            detail: { field: solField, value: plainText },
+          }));
+        }
       },
       onImageChange: (selector, src, alt) => {
         const pageFile = resolvePageFile(pagePathRef.current);
@@ -190,11 +211,39 @@ export function useIframeEditor(
     };
   }, [iframeRef, handleLoad]);
 
-  // Flush pending edits before page navigation
+  // Re-init editor bridge when enabled transitions to true
   useEffect(() => {
-    // When page changes, flush any pending edits from the previous page
+    if (!enabled) {
+      // Tear down the editor bridge when disabled
+      cleanupRef.current?.();
+      cleanupRef.current = null;
+      setSelection(null);
+      setToolbarPos(p => ({ ...p, visible: false }));
+      return;
+    }
+    // Re-init if iframe is already loaded
+    const iframe = iframeRef.current;
+    try {
+      if (iframe?.contentDocument?.readyState === 'complete' && iframe.contentDocument.body) {
+        handleLoad();
+      }
+    } catch { /* cross-origin */ }
+  }, [enabled]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // When page changes: flush previous edits, then navigate the SPA without a full reload
+  useEffect(() => {
     flushEdits();
     pendingEditsRef.current.clear();
+
+    // For hash-based SPAs, navigate by setting location.hash instead of reloading
+    if (navigateTo?.startsWith('#')) {
+      try {
+        const iframe = iframeRef.current;
+        if (iframe?.contentWindow) {
+          iframe.contentWindow.location.hash = navigateTo.slice(1); // strip leading '#'
+        }
+      } catch { /* cross-origin or not yet loaded — iframe src handles it */ }
+    }
   }, [pagePath]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ESC in parent frame

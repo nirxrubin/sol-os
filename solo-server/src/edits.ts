@@ -10,6 +10,8 @@
 
 import { Router } from 'express';
 import multer from 'multer';
+import fs from 'fs/promises';
+import path from 'path';
 import {
   applyEdits,
   applyCMSChanges,
@@ -22,6 +24,100 @@ import { getProjectState, setProjectState, readAnalysis, readEdits, writeEdits, 
 import type { PageEdits } from './state.js';
 import { buildProject } from './analyze/build.js';
 import { applySourceArrayEdits, type SourceArrayEdit as SourceArrEdit } from './engine/sourceArray.js';
+
+// ─── Dual-Write CMS: Source File Patchers ─────────────────────────────────
+//
+// Write B of the dual-write strategy: persist a CMS field change back to the
+// original source data file so it survives rebuilds.
+//
+// Write A (built HTML) is handled by the existing applyEdits() path.
+// Write B (source file) is fire-and-forget — never blocks the UI response.
+
+type SourceType = 'ts-array' | 'json' | 'mdx' | 'html';
+
+async function applySourceFileWrite(
+  projectRoot: string,
+  sourceFile: string,
+  sourceType: SourceType,
+  itemIndex: number,
+  field: string,
+  oldValue: string,
+  newValue: string,
+): Promise<void> {
+  const absPath = path.join(projectRoot, sourceFile);
+  try {
+    await fs.access(absPath);
+  } catch {
+    console.warn(`[source-write] File not found: ${sourceFile}`);
+    return;
+  }
+
+  try {
+    switch (sourceType) {
+      case 'json':
+        await patchJsonSource(absPath, itemIndex, field, newValue);
+        break;
+      case 'ts-array':
+        await patchTsArraySource(absPath, oldValue, newValue);
+        break;
+      case 'mdx':
+        await patchMdxSource(absPath, field, newValue);
+        break;
+      case 'html':
+        // HTML handled by Write A (applyEdits) — no-op here
+        break;
+    }
+    console.log(`[source-write] Patched ${sourceFile} [${sourceType}] item[${itemIndex}].${field}`);
+  } catch (err) {
+    console.warn(`[source-write] Failed to patch ${sourceFile}:`, err instanceof Error ? err.message : err);
+  }
+}
+
+async function patchJsonSource(filePath: string, index: number, field: string, value: string): Promise<void> {
+  const raw = await fs.readFile(filePath, 'utf-8');
+  const data = JSON.parse(raw);
+  // Handle both top-level array and object with one array property
+  const arr: Record<string, unknown>[] | null = Array.isArray(data)
+    ? data
+    : (Object.values(data).find(v => Array.isArray(v)) as Record<string, unknown>[] | undefined) ?? null;
+  if (!arr || !arr[index]) return;
+  arr[index][field] = value;
+  await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+}
+
+async function patchTsArraySource(filePath: string, oldValue: string, newValue: string): Promise<void> {
+  if (!oldValue || oldValue === newValue) return;
+  const raw = await fs.readFile(filePath, 'utf-8');
+  // Find and replace the first line containing the exact old string literal
+  const escaped = oldValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Match: 'old' or "old" or `old`
+  const pattern = new RegExp(`(['"\`])${escaped}\\1`);
+  const lines = raw.split('\n');
+  const lineIdx = lines.findIndex(l => pattern.test(l));
+  if (lineIdx === -1) {
+    console.warn(`[source-write] Could not find "${oldValue}" in ${filePath}`);
+    return;
+  }
+  const safeNew = newValue.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  lines[lineIdx] = lines[lineIdx].replace(pattern, `'${safeNew}'`);
+  await fs.writeFile(filePath, lines.join('\n'));
+}
+
+async function patchMdxSource(filePath: string, field: string, value: string): Promise<void> {
+  // Lazy-load gray-matter only when needed — avoids startup cost
+  let matter: typeof import('gray-matter').default;
+  try {
+    matter = (await import('gray-matter')).default;
+  } catch {
+    console.warn('[source-write] gray-matter not installed — MDX write skipped');
+    return;
+  }
+  const raw = await fs.readFile(filePath, 'utf-8');
+  const parsed = matter(raw);
+  if (!(field in parsed.data)) return;
+  parsed.data[field] = value;
+  await fs.writeFile(filePath, matter.stringify(parsed.content, parsed.data));
+}
 
 export const editsRouter = Router();
 
@@ -57,7 +153,10 @@ editsRouter.post('/source/edit', async (req, res) => {
 
   const allResults = [];
   for (const [page, pageEdits] of byPage) {
-    const results = await applyEdits(state.projectRoot, page, pageEdits);
+    // Use servePath for canvas edits on compiled projects (Next.js, React, etc.)
+    // so CSS-selector edits target the built HTML files, not the TypeScript source.
+    const editRoot = (state as any).servePath || state.projectRoot;
+    const results = await applyEdits(editRoot, page, pageEdits);
     allResults.push(...results);
   }
 
@@ -81,7 +180,19 @@ editsRouter.post('/source/edit', async (req, res) => {
 });
 
 // ─── CMS Sync ─────────────────────────────────────────────────────
-// Apply CMS field changes via stored bindings from content analysis.
+//
+// New architecture (compiler + adapter pattern):
+//   Phase 2 injector has already added window.__HP_DATA bridge to source arrays.
+//   CMS sync now works by:
+//     1. Writing updated CMS state to .sol-cms.json
+//     2. Returning { ok: true }
+//     3. Frontend bumps previewVersion → iframe reloads
+//     4. Preview server injects window.__HP_DATA from .sol-cms.json on every HTML serve
+//     5. React/Vue reads window.__HP_DATA?.varName on first render — shows updated content
+//
+//   No rebuild needed. No source file mutation per edit. Instant round-trip.
+//
+// Payload: { contentTypes: ContentType[] } — full CMS state, not field-level diffs.
 
 editsRouter.post('/source/cms-sync', async (req, res) => {
   const state = getProjectState();
@@ -90,42 +201,39 @@ editsRouter.post('/source/cms-sync', async (req, res) => {
     return;
   }
 
-  const { changes } = req.body as { changes: CMSFieldChange[] };
-  if (!changes || changes.length === 0) {
-    res.status(400).json({ error: 'changes array required' });
+  const body = req.body as { contentTypes?: unknown[]; changes?: unknown[] };
+
+  // Accept both full contentTypes payload (new) and legacy changes payload (old)
+  if (body.contentTypes && Array.isArray(body.contentTypes)) {
+    // New flow: persist full CMS state, preview server injects __HP_DATA
+    await writeCMS(body.contentTypes);
+    res.json({ ok: true, strategy: 'hp-data-injection' });
     return;
   }
 
-  // Read bindings from analysis data
+  // Legacy fallback: field-level changes via source array editing
+  // Kept for backward compatibility with older sessions that lack Phase 2 injection.
+  const { changes } = body as { changes: CMSFieldChange[] };
+  if (!changes || changes.length === 0) {
+    res.status(400).json({ error: 'contentTypes array or changes array required' });
+    return;
+  }
+
   const analysis = await readAnalysis() as any;
   if (!analysis?.contentTypes) {
-    res.status(400).json({ error: 'No analysis data with bindings' });
+    res.status(400).json({ error: 'No analysis data' });
     return;
   }
 
-  // Separate changes into HTML-binding changes and source-array changes
-  const htmlChanges: CMSFieldChange[] = [];
-  const sourceArrayEdits: SourceArrEdit[] = [];
-
-  // Build bindings map for HTML: { [ctId]: { [itemId]: CMSBinding[] } }
-  const bindingsMap: Record<string, Record<string, any[]>> = {};
-  // Build source bindings map: { [ctId]: { file, varName, items: { [itemId]: { itemIndex } } } }
   const sourceBindingsMap: Record<string, any> = {};
-
   for (const ct of analysis.contentTypes) {
-    if (ct.bindings) {
-      bindingsMap[ct.id] = ct.bindings;
-    }
-    if (ct.sourceBindings) {
-      sourceBindingsMap[ct.id] = ct.sourceBindings;
-    }
+    if (ct.sourceBindings) sourceBindingsMap[ct.id] = ct.sourceBindings;
   }
 
-  // Route each change to the right editor
+  const sourceArrayEdits: SourceArrEdit[] = [];
   for (const change of changes) {
     const sourceBinding = sourceBindingsMap[change.contentTypeId];
     if (sourceBinding?.items?.[change.itemId]) {
-      // This content type has source array bindings
       const itemBinding = sourceBinding.items[change.itemId];
       sourceArrayEdits.push({
         file: sourceBinding.file,
@@ -134,58 +242,94 @@ editsRouter.post('/source/cms-sync', async (req, res) => {
         fieldName: change.fieldName,
         newValue: change.newValue,
       });
-    } else if (bindingsMap[change.contentTypeId]) {
-      // This content type has HTML DOM bindings
-      htmlChanges.push(change);
     }
   }
 
-  const allResults: any[] = [];
-
-  // Apply HTML binding changes
-  if (htmlChanges.length > 0) {
-    const htmlResults = await applyCMSChanges(state.projectRoot, bindingsMap, htmlChanges);
-    allResults.push(...htmlResults);
+  if (sourceArrayEdits.length === 0) {
+    res.json({ ok: false, error: 'No applicable bindings found' });
+    return;
   }
 
-  // Apply source array changes
-  if (sourceArrayEdits.length > 0) {
-    const sourceResults = await applySourceArrayEdits(state.projectRoot, sourceArrayEdits);
-    allResults.push(...sourceResults.map(r => ({
-      success: r.success,
-      changeId: r.changeId,
-      page: r.file,
-      selector: `${r.varName}[${r.itemIndex}].${r.fieldName}`,
-      editType: 'text' as const,
-      oldValue: r.oldValue,
-      newValue: r.newValue,
-      error: r.error,
-    })));
+  const sourceResults = await applySourceArrayEdits(state.projectRoot, sourceArrayEdits);
 
-    // For SPA projects, rebuild synchronously so the frontend can reload immediately
-    if (sourceResults.some(r => r.success) && state.buildNeeded) {
-      console.log('  Rebuilding project after CMS edits...');
-      try {
-        const buildResult = await buildProject(state.projectRoot, { force: true });
-        if (buildResult.success) {
-          setProjectState({ ...state, servePath: buildResult.servePath });
-          console.log('  Rebuild complete');
-        } else {
-          console.warn('  Rebuild failed:', buildResult.buildError?.slice(0, 200));
-        }
-      } catch (err) {
-        console.error('  Rebuild error:', err);
-      }
+  if (sourceResults.some(r => r.success) && state.buildNeeded) {
+    console.log('  Rebuilding after legacy CMS sync...');
+    try {
+      const buildResult = await buildProject(state.projectRoot, { force: true });
+      if (buildResult.success) setProjectState({ ...state, servePath: buildResult.servePath });
+    } catch (err) {
+      console.error('  Rebuild error:', err);
     }
   }
 
-  await recordChanges(allResults, 'cms');
+  const mappedResults = sourceResults.map(r => ({
+    success: r.success,
+    changeId: r.changeId,
+    page: r.file,
+    selector: `${r.varName}[${r.itemIndex}].${r.fieldName}`,
+    editType: 'text' as const,
+    oldValue: r.oldValue,
+    newValue: r.newValue,
+    error: r.error,
+  }));
 
+  await recordChanges(mappedResults, 'cms');
   res.json({
-    ok: allResults.some((r: any) => r.success),
-    rebuilt: state.buildNeeded && allResults.some((r: any) => r.success),
-    results: allResults,
+    ok: mappedResults.some(r => r.success),
+    rebuilt: state.buildNeeded && mappedResults.some(r => r.success),
+    strategy: 'source-array-legacy',
+    results: mappedResults,
   });
+});
+
+// ─── CMS Source Field Write ───────────────────────────────────────
+// Write B of dual-write: persist a single CMS field change to the source file.
+// Called by the frontend in parallel with cms-sync (Write A = built HTML/HP_DATA).
+// Fire-and-forget from the client's perspective — always returns { ok: true }.
+
+editsRouter.post('/source/cms-field-write', async (req, res) => {
+  const state = getProjectState();
+  if (!state) {
+    res.json({ ok: false, error: 'No project loaded' });
+    return;
+  }
+
+  const { collectionId, itemIndex, field, oldValue, newValue } = req.body as {
+    collectionId: string;
+    itemIndex: number;
+    field: string;
+    oldValue: string;
+    newValue: string;
+  };
+
+  if (!collectionId || itemIndex === undefined || !field || newValue === undefined) {
+    res.json({ ok: false, error: 'collectionId, itemIndex, field, newValue required' });
+    return;
+  }
+
+  // Look up source binding from stored analysis
+  const analysis = await readAnalysis() as any;
+  const contentType = analysis?.contentTypes?.find((ct: any) => ct.id === collectionId);
+  const bindings = contentType?.sourceBindings;
+
+  if (!bindings?.file || !bindings?.sourceType) {
+    // No source mapping — skip silently (Base44, API-driven, etc.)
+    res.json({ ok: true, skipped: true, reason: 'No source mapping for this collection' });
+    return;
+  }
+
+  // Fire-and-forget — don't await, don't block the response
+  applySourceFileWrite(
+    state.projectRoot,
+    bindings.file,
+    bindings.sourceType as SourceType,
+    itemIndex,
+    field,
+    oldValue ?? '',
+    newValue,
+  ).catch(err => console.warn('[source-write] Background write failed:', err));
+
+  res.json({ ok: true, sourceFile: bindings.file, sourceType: bindings.sourceType });
 });
 
 // ─── Asset Upload ─────────────────────────────────────────────────
