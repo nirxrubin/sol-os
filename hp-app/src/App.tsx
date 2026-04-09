@@ -17,16 +17,14 @@ export default function App() {
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [deployUrl, setDeployUrl] = useState<string | undefined>(undefined);
   const [generatorId, setGeneratorId] = useState<string | undefined>(undefined);
-  const [generatorConfidence, setGeneratorConfidence] = useState<string | undefined>(undefined);
 
   // On mount: apply theme + check if server already has a completed analysis
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
     fetch(`${API}/api/analysis`)
       .then(r => r.json())
-      .then((data: { status: string; project?: Project; generatorId?: string; generatorConfidence?: string }) => {
+      .then((data: { status: string; project?: Project; generatorId?: string }) => {
         if (data.generatorId) setGeneratorId(data.generatorId);
-        if (data.generatorConfidence) setGeneratorConfidence(data.generatorConfidence);
         if (data.status === 'complete' && data.project) {
           setImportedProject(data.project);
           setView('dashboard');
@@ -49,7 +47,6 @@ export default function App() {
     setUploadResult(null);
     setDeployUrl(undefined);
     setGeneratorId(undefined);
-    setGeneratorConfidence(undefined);
     setView('landing');
   };
 
@@ -63,7 +60,6 @@ export default function App() {
     detection?: { generatorId?: string; generatorConfidence?: string; generatorNotice?: string }
   ) => {
     if (detection?.generatorId) setGeneratorId(detection.generatorId);
-    if (detection?.generatorConfidence) setGeneratorConfidence(detection.generatorConfidence);
     if (project) {
       setImportedProject(project);
     }
