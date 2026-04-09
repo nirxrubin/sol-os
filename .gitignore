@@ -16,8 +16,12 @@ dist/
 *.swo
 .DS_Store
 
-# Sol OS workspace (uploaded projects, analysis, edits)
+# Workspaces (uploaded projects, analysis, builds)
 solo-server/.workspace/
+hp-server/.workspace/
+
+# Brainstorm sessions
+.superpowers/
 
 # Logs
 *.log
