@@ -7,6 +7,13 @@
       "runtimeArgs": ["/Users/nirxrubin/SOLO/.claude/start-dev.sh"],
       "port": 5173,
       "cwd": "solo-app"
+    },
+    {
+      "name": "solo-server",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3001,
+      "cwd": "solo-server"
     }
   ]
 }

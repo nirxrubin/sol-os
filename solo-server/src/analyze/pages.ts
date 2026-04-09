@@ -210,3 +210,54 @@ function deduplicateSections(sections: Section[]): Section[] {
     return true;
   });
 }
+
+// ─── Rendered Page Analysis (Puppeteer output) ───────────────────
+
+import type { RenderedPage } from './renderer.js';
+
+export function analyzePagesFromRendered(renderedPages: RenderedPage[]): Page[] {
+  const pages: Page[] = [];
+
+  for (const rp of renderedPages) {
+    const $ = cheerio.load(rp.renderedHTML);
+    const title = rp.title || $('title').text().trim();
+    const metaDesc = $('meta[name="description"]').attr('content');
+    const ogTitle = $('meta[property="og:title"]').attr('content');
+    const ogDesc = $('meta[property="og:description"]').attr('content');
+
+    let seoStatus: Page['seoStatus'] = 'missing';
+    if (title && metaDesc && ogTitle && ogDesc) {
+      seoStatus = 'complete';
+    } else if (title || metaDesc) {
+      seoStatus = 'partial';
+    }
+
+    // Derive name from route or title
+    const routeName = rp.path === '/'
+      ? (title ? title.split(/\s*[|–—-]\s*/)[0].trim() : 'Home')
+      : capitalize(rp.path.replace(/^\//, '').replace(/[-_]/g, ' '));
+
+    const pageName = routeName.length > 0 && routeName.length < 40 ? routeName : `Page ${rp.path}`;
+    const pageId = 'page-' + rp.path.replace(/[^a-z0-9]/gi, '-').replace(/^-|-$/g, '') || 'page-home';
+
+    // Detect sections from rendered DOM
+    const sections = detectSections($, pageId);
+
+    pages.push({
+      id: pageId,
+      name: pageName,
+      path: rp.path,
+      seoStatus,
+      sections,
+    });
+  }
+
+  // Sort: home first, then alphabetical
+  pages.sort((a, b) => {
+    if (a.path === '/') return -1;
+    if (b.path === '/') return 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  return pages;
+}
