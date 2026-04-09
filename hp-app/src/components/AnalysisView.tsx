@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Circle, Loader2 } from 'lucide-react';
 import type { Project } from '../data/types';
+import { API } from '../lib/api';
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -61,7 +62,7 @@ export default function AnalysisView({ onComplete, polling, fileCount }: Analysi
     const pollTimer = setInterval(async () => {
       if (cancelled) return;
       try {
-        const res  = await fetch('/api/analysis');
+        const res  = await fetch(`${API}/api/analysis`);
         const data = await res.json();
 
         if (data.status === 'complete' && data.project && !cancelled) {

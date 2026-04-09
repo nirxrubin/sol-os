@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { Upload, Globe, Shield, Zap, Users, Loader2 } from 'lucide-react';
 import HpLogo from './HpLogo';
 import type { UploadResult } from '../data/types';
+import { API } from '../lib/api';
 
 interface LandingProps {
   onImport: (result: UploadResult) => void;
@@ -37,7 +38,7 @@ export default function Landing({ onImport }: LandingProps) {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const res = await fetch(`${API}/api/upload`, { method: 'POST', body: formData });
       if (!res.ok) {
         const data = await res.json().catch(() => ({ error: 'Upload failed' }));
         throw new Error(data.error || 'Upload failed');

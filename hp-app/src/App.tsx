@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { AppView, ThemeMode, Project, UploadResult } from './data/types';
+import { API } from './lib/api';
 import Landing from './components/Landing';
 import AnalysisView from './components/AnalysisView';
 import TopBar from './components/TopBar';
@@ -21,7 +22,7 @@ export default function App() {
   // On mount: apply theme + check if server already has a completed analysis
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
-    fetch('/api/analysis')
+    fetch(`${API}/api/analysis`)
       .then(r => r.json())
       .then((data: { status: string; project?: Project; generatorId?: string; generatorConfidence?: string }) => {
         if (data.generatorId) setGeneratorId(data.generatorId);
@@ -43,7 +44,7 @@ export default function App() {
 
   // Reset to landing — clears server workspace
   const handleNewProject = async () => {
-    try { await fetch('/api/reset', { method: 'POST' }); } catch { /* server offline */ }
+    try { await fetch(`${API}/api/reset`, { method: 'POST' }); } catch { /* server offline */ }
     setImportedProject(null);
     setUploadResult(null);
     setDeployUrl(undefined);

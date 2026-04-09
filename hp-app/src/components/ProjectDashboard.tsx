@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Copy, ExternalLink, Globe, User } from 'lucide-react';
 import type { Project } from '../data/types';
+import { API, PREVIEW_URL, IS_PROD } from '../lib/api';
 
 interface ProjectDashboardProps {
   project: Project;
@@ -84,7 +85,7 @@ export default function ProjectDashboard({
     setDeployError(undefined);
 
     try {
-      const res = await fetch('http://localhost:3001/api/deploy', { method: 'POST' });
+      const res = await fetch(`${API}/api/deploy`, { method: 'POST' });
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
       const data: { slug?: string; url?: string; ok?: boolean } = await res.json();
       const url = data.url ?? (data.slug ? `https://${data.slug}.hostaposta.app` : undefined);
@@ -121,13 +122,21 @@ export default function ProjectDashboard({
     <div className="flex h-full w-full overflow-hidden">
       {/* ── Left: Read-only preview iframe ── */}
       <div className="flex-1 overflow-hidden bg-bg-elevated border-r border-border">
-        <iframe
-          src="http://localhost:3002"
-          className="h-full w-full border-0"
-          title="Site preview"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-          style={{ minWidth: '1024px', transform: 'scale(1)', transformOrigin: 'top left' }}
-        />
+        {IS_PROD ? (
+          <div className="h-full w-full flex flex-col items-center justify-center gap-3 text-text-muted">
+            <Globe className="h-8 w-8 opacity-30" />
+            <p className="text-sm">Preview available in local dev</p>
+            <p className="text-xs opacity-60">Deploy to see your site live</p>
+          </div>
+        ) : (
+          <iframe
+            src={PREVIEW_URL}
+            className="h-full w-full border-0"
+            title="Site preview"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            style={{ minWidth: '1024px', transform: 'scale(1)', transformOrigin: 'top left' }}
+          />
+        )}
       </div>
 
       {/* ── Right: Control panel ── */}
