@@ -3,25 +3,22 @@ node_modules/
 
 # Build output
 dist/
+build/
+out/
 
-# Environment
+# Environment — never commit secrets
 .env
 .env.local
 .env.*.local
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-.DS_Store
-
-# Workspaces (uploaded projects, analysis, builds)
-solo-server/.workspace/
+# Runtime workspaces (uploaded projects, builds, analysis)
 hp-server/.workspace/
 
 # Brainstorm sessions
 .superpowers/
+
+# macOS
+.DS_Store
 
 # Logs
 *.log
