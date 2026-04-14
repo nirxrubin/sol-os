@@ -25,7 +25,7 @@ function ComingSoonModal({ onClose }: { onClose: () => void }) {
         className="relative rounded-2xl border border-border bg-bg-sidebar px-8 py-7 shadow-2xl max-w-sm w-full mx-4"
         onClick={e => e.stopPropagation()}
       >
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-accent mb-2">Coming soon</p>
+        <p className="label-mono text-accent mb-2">Coming soon</p>
         <h3 className="text-lg font-semibold text-text leading-snug">We're working on it</h3>
         <p className="mt-2 text-sm text-text-secondary">This feature is on our roadmap. Stay tuned for updates.</p>
         <button
@@ -58,6 +58,30 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+// ─── Shared: section label ────────────────────────────────────────
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="label-mono text-text-muted mb-2">{children}</p>
+  );
+}
+
+// ─── Shared: status badge with tint ──────────────────────────────
+type TintColor = 'success' | 'warning' | 'danger' | 'info';
+
+function TintBadge({ color, children }: { color: TintColor; children: React.ReactNode }) {
+  return (
+    <span
+      className="label-mono px-2 py-0.5 rounded"
+      style={{
+        background: `var(--tint-${color})`,
+        color: `var(--tint-${color}-text)`,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
 // ─── Tab: Pages ────────────────────────────────────────────────────
 function PagesTab({ pages }: { pages: Page[] }) {
   if (pages.length === 0) {
@@ -73,18 +97,17 @@ function PagesTab({ pages }: { pages: Page[] }) {
         <div key={page.id} className="flex items-center justify-between rounded-xl border border-border bg-bg-elevated px-4 py-3 gap-3">
           <div className="min-w-0">
             <p className="text-sm font-medium text-text truncate">{page.name}</p>
-            <p className="text-xs text-text-muted font-mono truncate">{page.path}</p>
+            <p className="text-[11px] font-mono text-text-muted truncate">{page.path}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className={`text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${
-              page.seoStatus === 'complete' ? 'bg-green-900/40 text-green-400' :
-              page.seoStatus === 'partial'  ? 'bg-amber-900/40 text-amber-400' :
-                                             'bg-red-900/40 text-red-400'
-            }`}>
+            <TintBadge color={
+              page.seoStatus === 'complete' ? 'success' :
+              page.seoStatus === 'partial'  ? 'warning' : 'danger'
+            }>
               SEO {page.seoStatus}
-            </span>
+            </TintBadge>
             {page.sections.length > 0 && (
-              <span className="text-[11px] text-text-muted">{page.sections.length} sections</span>
+              <span className="label-mono text-text-muted">{page.sections.length} sections</span>
             )}
           </div>
         </div>
@@ -119,7 +142,7 @@ function CMSTab({ contentTypes, onComingSoon }: { contentTypes: ContentType[]; o
           >
             <div>
               <p className="text-sm font-medium text-text">{ct.name}</p>
-              <p className="text-xs text-text-muted">{ct.items.length} items · {ct.fields.length} fields</p>
+              <p className="label-mono text-text-muted mt-0.5">{ct.items.length} items · {ct.fields.length} fields</p>
             </div>
             <ChevronRight className={`h-4 w-4 text-text-muted transition-transform ${expanded === ct.id ? 'rotate-90' : ''}`} />
           </button>
@@ -129,7 +152,7 @@ function CMSTab({ contentTypes, onComingSoon }: { contentTypes: ContentType[]; o
               {/* Field list */}
               <div className="flex flex-wrap gap-1.5 px-4 py-3 border-b border-border">
                 {ct.fields.map(f => (
-                  <span key={f.id} className="rounded-md bg-bg px-2 py-0.5 text-[11px] font-mono text-text-muted border border-border">
+                  <span key={f.id} className="rounded-md bg-bg px-2 py-0.5 border border-border font-mono text-[10px] text-text-muted">
                     {f.name}: <span className="text-accent">{f.type}</span>
                   </span>
                 ))}
@@ -145,7 +168,7 @@ function CMSTab({ contentTypes, onComingSoon }: { contentTypes: ContentType[]; o
                       <p className="text-sm text-text truncate">{label || item.id}</p>
                       <button
                         onClick={onComingSoon}
-                        className="text-[11px] text-accent hover:underline shrink-0"
+                        className="label-mono text-accent hover:underline shrink-0"
                       >
                         Edit
                       </button>
@@ -153,7 +176,7 @@ function CMSTab({ contentTypes, onComingSoon }: { contentTypes: ContentType[]; o
                   );
                 })}
                 {ct.items.length > 8 && (
-                  <div className="px-4 py-2 text-xs text-text-muted">+{ct.items.length - 8} more</div>
+                  <div className="px-4 py-2 label-mono text-text-muted">+{ct.items.length - 8} more</div>
                 )}
               </div>
             </div>
@@ -170,22 +193,28 @@ function ReadinessTab({ project }: { project: Project }) {
   const items = project.readinessItems;
   const { aiInsights } = project;
 
+  const scoreColor: TintColor = score >= 80 ? 'success' : score >= 50 ? 'warning' : 'danger';
+
   return (
     <div className="p-5 space-y-5">
       {/* Score */}
       <div className="rounded-xl border border-border bg-bg-elevated px-4 py-4">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm font-medium text-text">Launch readiness</p>
-          <p className={`text-2xl font-heading font-bold ${
-            score >= 80 ? 'text-green-400' : score >= 50 ? 'text-amber-400' : 'text-red-400'
-          }`}>{score}<span className="text-base text-text-muted font-normal">/100</span></p>
+        <div className="flex items-center justify-between mb-3">
+          <SectionLabel>Launch readiness</SectionLabel>
+          <p
+            className="text-2xl font-heading font-bold"
+            style={{ color: `var(--tint-${scoreColor}-text)` }}
+          >
+            {score}<span className="text-base text-text-muted font-normal font-sans">/100</span>
+          </p>
         </div>
         <div className="h-1.5 rounded-full bg-bg overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${
-              score >= 80 ? 'bg-green-400' : score >= 50 ? 'bg-amber-400' : 'bg-red-400'
-            }`}
-            style={{ width: `${score}%` }}
+            className="h-full rounded-full transition-all"
+            style={{
+              width: `${score}%`,
+              background: `var(--tint-${scoreColor}-text)`,
+            }}
           />
         </div>
       </div>
@@ -193,13 +222,13 @@ function ReadinessTab({ project }: { project: Project }) {
       {/* Business summary */}
       {aiInsights.businessSummary && (
         <div className="rounded-xl border border-border bg-bg-elevated px-4 py-4">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted mb-2">About this project</p>
+          <SectionLabel>About this project</SectionLabel>
           <p className="text-sm text-text-secondary leading-relaxed">{aiInsights.businessSummary}</p>
           {aiInsights.businessType && (
-            <p className="mt-2 text-xs text-text-muted">
-              Type: <span className="text-text-secondary">{aiInsights.businessType}</span>
+            <p className="mt-3 flex flex-wrap gap-2">
+              <TintBadge color="info">{aiInsights.businessType}</TintBadge>
               {aiInsights.targetAudience && (
-                <> · Audience: <span className="text-text-secondary">{aiInsights.targetAudience}</span></>
+                <TintBadge color="info">{aiInsights.targetAudience}</TintBadge>
               )}
             </p>
           )}
@@ -209,13 +238,23 @@ function ReadinessTab({ project }: { project: Project }) {
       {/* Readiness items */}
       {items.length > 0 && (
         <div className="space-y-2">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted">Checklist</p>
+          <SectionLabel>Checklist</SectionLabel>
           {items.map(item => (
-            <div key={item.id} className="flex items-center gap-3 rounded-lg border border-border bg-bg-elevated px-3 py-2.5">
+            <div
+              key={item.id}
+              className="flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors"
+              style={
+                item.status === 'complete'
+                  ? { background: 'var(--tint-success)', borderColor: 'transparent' }
+                  : item.status === 'in-progress'
+                  ? { background: 'var(--tint-warning)', borderColor: 'transparent' }
+                  : { borderColor: 'var(--color-border)', background: 'var(--color-bg-elevated)' }
+              }
+            >
               {item.status === 'complete' ? (
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-green-400" />
+                <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: 'var(--tint-success-text)' }} />
               ) : item.status === 'in-progress' ? (
-                <AlertCircle className="h-4 w-4 shrink-0 text-amber-400" />
+                <AlertCircle className="h-4 w-4 shrink-0" style={{ color: 'var(--tint-warning-text)' }} />
               ) : (
                 <Circle className="h-4 w-4 shrink-0 text-text-muted" />
               )}
@@ -307,8 +346,8 @@ export default function ProjectDashboard({
                 <Icon className="h-3.5 w-3.5" />
                 {tab.label}
                 {tab.badge != null && tab.badge > 0 && (
-                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
-                    isActive ? 'bg-accent/20 text-accent' : 'bg-bg-elevated text-text-muted'
+                  <span className={`label-mono px-1.5 py-0.5 rounded-full ${
+                    isActive ? 'bg-accent/15 text-accent' : 'bg-bg-elevated text-text-muted'
                   }`}>
                     {tab.badge}
                   </span>
@@ -349,23 +388,27 @@ export default function ProjectDashboard({
 
         {/* Project info */}
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted mb-2">Project</p>
+          <SectionLabel>Project</SectionLabel>
           <p className="text-sm font-semibold text-text truncate">{project.name}</p>
           {generatorLabel && (
-            <p className="mt-0.5 text-xs text-text-muted">
-              Built with{' '}
-              <span className="rounded bg-bg-elevated px-1.5 py-0.5 text-[11px] text-text-secondary">{generatorLabel}</span>
+            <p className="mt-1">
+              <span className="label-mono rounded bg-bg-elevated px-2 py-0.5 text-text-secondary border border-border">
+                {generatorLabel}
+              </span>
             </p>
           )}
           {project.readinessScore > 0 && (
             <div className="mt-3 flex items-center gap-2">
               <div className="flex-1 h-1 rounded-full bg-bg overflow-hidden">
                 <div
-                  className={`h-full rounded-full ${project.readinessScore >= 80 ? 'bg-green-400' : project.readinessScore >= 50 ? 'bg-amber-400' : 'bg-red-400'}`}
-                  style={{ width: `${project.readinessScore}%` }}
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${project.readinessScore}%`,
+                    background: `var(--tint-${project.readinessScore >= 80 ? 'success' : project.readinessScore >= 50 ? 'warning' : 'danger'}-text)`,
+                  }}
                 />
               </div>
-              <span className="text-xs text-text-muted">{project.readinessScore}%</span>
+              <span className="label-mono text-text-muted">{project.readinessScore}%</span>
             </div>
           )}
         </div>
@@ -374,11 +417,11 @@ export default function ProjectDashboard({
 
         {/* Deploy section */}
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted mb-3">Deployment</p>
+          <SectionLabel>Deployment</SectionLabel>
           <div className="flex items-center gap-2 mb-4">
             <span className={`inline-block h-2 w-2 rounded-full ${
-              deployStatus === 'live' ? 'bg-green-400' :
-              deployStatus === 'error' ? 'bg-red-400' : 'bg-text-muted/40'
+              deployStatus === 'live'  ? 'bg-status-green' :
+              deployStatus === 'error' ? 'bg-status-red'   : 'bg-text-muted/40'
             }`} />
             <span className="text-sm text-text-secondary">
               {deployStatus === 'live' ? 'Live' : deployStatus === 'error' ? 'Deploy failed' : 'Not deployed'}
@@ -397,12 +440,12 @@ export default function ProjectDashboard({
                 ) : 'Deploy to HostaPosta →'}
               </button>
               {deployStatus === 'error' && deployError && (
-                <p className="mt-2 text-xs text-red-400">{deployError}</p>
+                <p className="mt-2 text-xs" style={{ color: 'var(--tint-danger-text)' }}>{deployError}</p>
               )}
             </>
           ) : (
             <div className="rounded-xl border border-border bg-bg-elevated p-3">
-              <p className="text-[11px] text-text-muted mb-1.5 truncate">{deploySlug}</p>
+              <p className="label-mono text-text-muted mb-1.5 truncate">{deploySlug}</p>
               <div className="flex items-center gap-1.5">
                 <CopyButton text={deployUrl!} />
                 <a href={deployUrl} target="_blank" rel="noopener noreferrer"
@@ -418,7 +461,7 @@ export default function ProjectDashboard({
 
         {/* Domain section */}
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted mb-3">Domain</p>
+          <SectionLabel>Domain</SectionLabel>
           <div className="flex flex-col gap-2">
             <button onClick={() => setComingSoon(true)}
               className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-text-secondary hover:bg-bg-elevated hover:text-text transition-colors text-left">
@@ -435,7 +478,7 @@ export default function ProjectDashboard({
 
         {/* Client section */}
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted mb-3">Client</p>
+          <SectionLabel>Client</SectionLabel>
           <button onClick={() => setComingSoon(true)}
             className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-text-secondary hover:bg-bg-elevated hover:text-text transition-colors w-full text-left">
             <User className="h-3.5 w-3.5 shrink-0 text-text-muted" />Invite client

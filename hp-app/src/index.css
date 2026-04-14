@@ -36,6 +36,7 @@
 @theme {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-heading: 'PP Kyoto', 'Georgia', serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
 
   /* Neutral / Gray */
   --color-gray-50: #FAF9F7;
@@ -86,6 +87,7 @@
   --color-badge-published: #16A34A;
   --color-badge-draft: #A8A29E;
 
+
   /* Accent (purple) for special highlights */
   --color-accent-purple: #7C3AED;
 
@@ -107,6 +109,29 @@
   --radius-2xl: 10px;
   --radius-3xl: 14px;
   --radius-full: 9999px;
+}
+
+/* Tint tokens — defined outside @theme to avoid Tailwind v4 color name conflicts */
+:root {
+  --tint-success:      rgba(22, 163, 74, 0.10);
+  --tint-success-text: #15803D;
+  --tint-warning:      rgba(217, 119, 6, 0.10);
+  --tint-warning-text: #B45309;
+  --tint-danger:       rgba(220, 38, 38, 0.10);
+  --tint-danger-text:  #B91C1C;
+  --tint-info:         rgba(37, 99, 235, 0.10);
+  --tint-info-text:    #1D4ED8;
+}
+
+html.dark {
+  --tint-success:      rgba(22, 163, 74, 0.14);
+  --tint-success-text: #4ADE80;
+  --tint-warning:      rgba(217, 119, 6, 0.14);
+  --tint-warning-text: #FCD34D;
+  --tint-danger:       rgba(220, 38, 38, 0.14);
+  --tint-danger-text:  #FCA5A5;
+  --tint-info:         rgba(37, 99, 235, 0.14);
+  --tint-info-text:    #93C5FD;
 }
 
 html,
@@ -146,6 +171,7 @@ html.dark {
   --color-text-muted: #78716C;
   --color-accent: #F5A623;
   --color-accent-hover: #FCC576;
+
 }
 
 /* Custom scrollbar */
@@ -158,6 +184,15 @@ html.dark {
 /* Heading utility */
 .font-heading {
   font-family: var(--font-heading);
+}
+
+/* Mono label — use for ALL section headers, status badges, category labels */
+.label-mono {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }
 
 /* Content editable focus */
