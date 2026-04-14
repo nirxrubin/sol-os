@@ -77,7 +77,7 @@ export default function Landing({ onImport }: LandingProps) {
   };
 
   return (
-    <div className="flex h-full w-full flex-col bg-bg">
+    <div className="flex min-h-full w-full flex-col bg-bg">
       {/* Top-left logo */}
       <div className="px-8 pt-6">
         <HpLogo className="h-5 w-auto text-text" />

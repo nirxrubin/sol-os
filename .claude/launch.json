@@ -2,18 +2,16 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "solo-dev",
+      "name": "hp-app",
       "runtimeExecutable": "/bin/bash",
-      "runtimeArgs": ["/Users/nirxrubin/SOLO/.claude/start-dev.sh"],
-      "port": 5173,
-      "cwd": "solo-app"
+      "runtimeArgs": ["-c", "cd hp-app && PATH=/usr/local/bin:$PATH /usr/local/bin/npm run dev -- --port 5174"],
+      "port": 5174
     },
     {
-      "name": "solo-server",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 3001,
-      "cwd": "solo-server"
+      "name": "hp-server",
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": ["-c", "cd hp-server && PATH=/usr/local/bin:$PATH /usr/local/bin/npm run dev"],
+      "port": 3001
     }
   ]
 }
