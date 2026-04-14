@@ -24,8 +24,12 @@ export type EmitFn = (event: AgentEvent) => void;
 const MAX_TOOL_CALLS = 50;
 const TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
 
-const PRIMARY_MODEL   = 'claude-sonnet-4-6';
-const FALLBACK_MODEL  = 'claude-3-5-haiku-20241022';
+// AI_MODEL=haiku → cheap testing. AI_MODEL=sonnet (default) → full quality.
+const AI_MODEL_ENV = process.env.AI_MODEL?.toLowerCase();
+const PRIMARY_MODEL = AI_MODEL_ENV === 'haiku'
+  ? 'claude-haiku-4-5-20251001'
+  : 'claude-sonnet-4-6';
+const FALLBACK_MODEL = 'claude-haiku-4-5-20251001';
 
 // Retryable Anthropic status codes (transient server-side issues)
 const RETRYABLE_STATUSES = new Set([429, 529]);
