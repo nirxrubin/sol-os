@@ -1,6 +1,6 @@
 // ─── App state ────────────────────────────────────────────────────────────────
 
-export type AppView   = 'landing' | 'analyzing' | 'dashboard';
+export type AppView   = 'landing' | 'analyzing' | 'framework-confirm' | 'env-gate' | 'dashboard';
 export type ThemeMode = 'dark' | 'light';
 
 // ─── Project (returned by /api/analysis) ─────────────────────────────────────

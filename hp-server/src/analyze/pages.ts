@@ -151,7 +151,8 @@ function detectSections($: cheerio.CheerioAPI, pageId: string): Section[] {
 
 function inferSectionType(
   $: cheerio.CheerioAPI,
-  $el: cheerio.Cheerio<cheerio.Element>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  $el: cheerio.Cheerio<any>,
   text: string,
   classes: string,
   id: string,

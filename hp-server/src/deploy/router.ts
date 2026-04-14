@@ -14,6 +14,7 @@
 
 import { Router } from 'express';
 import path from 'path';
+import { existsSync } from 'fs';
 import { getProjectState, setProjectState } from '../state.js';
 import { buildProject } from '../analyze/build.js';
 import { deployToCloudflarePages } from './cloudflarePages.js';
@@ -56,14 +57,30 @@ deployRouter.post('/deploy', async (req, res) => {
       });
 
       if (!buildResult.success) {
-        console.warn('[deploy] Build failed but continuing with available serveDir');
-      } else {
-        console.log(`[deploy] Build complete, serveDir=${serveDir}`);
+        res.status(400).json({
+          success: false,
+          error: 'Build failed — cannot deploy source files. See build error for details.',
+          buildError: buildResult.buildError,
+          buildOutput: buildResult.buildOutput,
+        });
+        return;
       }
+      console.log(`[deploy] Build complete, serveDir=${serveDir}`);
     } catch (err: any) {
       console.error('[deploy] Build threw error:', err.message);
-      // Continue with current servePath rather than aborting deploy
+      res.status(500).json({ success: false, error: `Build error: ${err.message}` });
+      return;
     }
+  }
+
+  // ── Guard: never deploy source files ───────────────────────────────────
+  if (!existsSync(path.join(serveDir, 'index.html'))) {
+    res.status(400).json({
+      success: false,
+      error: 'No index.html found in build output. Source files cannot be deployed.',
+      serveDir,
+    });
+    return;
   }
 
   // ── Deploy ──────────────────────────────────────────────────────────────

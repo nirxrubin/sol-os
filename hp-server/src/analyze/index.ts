@@ -7,6 +7,9 @@ import { runAutonomousAgent } from './autonomousAgent.js';
 import { mapToProject } from './outputSchema.js';
 import { emitLog, type LimitType } from '../progress.js';
 import { detectProject } from './detector.js';
+import { applyPatches } from './patch.js';
+import { ARCHETYPES, type ArchetypeId } from './archetypes.js';
+import { existsSync } from 'fs';
 
 // ─── Limit error classifier ───────────────────────────────────────────
 
@@ -87,9 +90,9 @@ function classifyAnalysisError(err: unknown): LimitWarning {
 export async function analyzeProject(projectRoot: string, fileTree: string[]) {
   console.log(`Analyzing project at ${projectRoot} (${fileTree.length} files)...`);
 
-  // ── Step 0: Detect archetype + generator (fast, filesystem-only) ──
+  // ── Stage 1: Heuristics — fast filesystem-only detection (<100ms) ──
   const detection = await detectProject(projectRoot);
-  console.log(`  Archetype: ${detection.archetype.id} | Generator: ${detection.generator.id} (${detection.generator.confidence})`);
+  console.log(`  Archetype: ${detection.archetype.id} [${detection.confidence}] | Generator: ${detection.generator.id} | needsBackend: ${detection.needsBackend}`);
   emitLog({ type: 'info', message: `Detected: ${detection.archetype.displayName}${detection.generator.id !== 'UNKNOWN' ? ` · Built with ${detection.generator.displayName}` : ''}` });
 
   // Persist detection to state immediately so UI can show it
@@ -98,14 +101,25 @@ export async function analyzeProject(projectRoot: string, fileTree: string[]) {
     setProjectState({
       ...detectionState,
       archetypeId: detection.archetype.id,
+      detectionConfidence: detection.confidence,
+      needsBackend: detection.needsBackend,
       generatorId: detection.generator.id,
       generatorConfidence: detection.generator.confidence,
       generatorNotice: detection.generator.notice,
     });
   }
 
-  // ── Step 1: Build if needed (archetype-driven) ────────────────────
-  const buildResult = await buildProject(projectRoot, { archetype: detection.archetype });
+  // ── Apply automatic patch set before any build attempt ────────────
+  emitLog({ type: 'info', message: 'Applying compatibility patches…' });
+  await applyPatches(projectRoot);
+
+  // ── Stage 1 fast path: high-confidence archetype → single build attempt ──
+  let buildResult = await buildProject(projectRoot, { archetype: detection.archetype });
+
+  // ── Stage 2: Multi-strategy build (low confidence OR first build failed) ──
+  if (!buildResult.success && buildResult.needed) {
+    buildResult = await multiStrategyBuild(projectRoot, buildResult);
+  }
 
   if (buildResult.needed) {
     console.log(`  Build: ${buildResult.success ? 'SUCCESS' : 'FAILED'}`);
@@ -116,12 +130,21 @@ export async function analyzeProject(projectRoot: string, fileTree: string[]) {
     if (state) {
       setProjectState({
         ...state,
-        servePath: buildResult.servePath,
+        servePath: buildResult.success ? buildResult.servePath : state.projectRoot,
         buildNeeded: true,
         buildSuccess: buildResult.success,
         buildError: buildResult.buildError,
+        buildOutput: buildResult.buildOutput,
       });
     }
+  }
+
+  // ── Stage 3: User confirmation needed — stop here, wait for API call ──
+  if (buildResult.needed && !buildResult.success) {
+    emitLog({ type: 'error', message: `Build failed — waiting for your input to continue.` });
+    // State already persisted above. The frontend will detect buildSuccess=false
+    // and show the FrameworkConfirmView. Analysis continues once they submit.
+    return null;
   }
 
   // ── Step 2: Media analysis (fast heuristic, runs in parallel) ────
@@ -191,6 +214,58 @@ export async function analyzeProject(projectRoot: string, fileTree: string[]) {
   await writeAnalysis(project);
   console.log('[analyze] Analysis written');
   return project;
+}
+
+// ─── Stage 2: Multi-strategy build ───────────────────────────────────
+
+/**
+ * Try alternative build strategies when Stage 1 fails.
+ *
+ * Strategy A: check if dist/build/out already contains index.html (pre-built)
+ * Strategy B: try each known framework CLI directly
+ * Strategy C: npm run build with a plain npm run build command (already tried in Stage 1, skip)
+ */
+async function multiStrategyBuild(
+  projectRoot: string,
+  previousResult: import('./build.js').BuildResult,
+): Promise<import('./build.js').BuildResult> {
+  emitLog({ type: 'info', message: 'Trying alternative build strategies…' });
+
+  // Strategy A: check if a pre-built output already exists
+  const outputDirs = ['dist', 'build', 'out', '.next/out', 'public'];
+  for (const dir of outputDirs) {
+    const dirPath = path.join(projectRoot, dir);
+    if (existsSync(path.join(dirPath, 'index.html'))) {
+      console.log(`  [stage2] Found pre-built output at ${dir}/`);
+      emitLog({ type: 'info', message: `Found existing build output at ${dir}/ — using it.` });
+      return { needed: false, success: true, servePath: dirPath };
+    }
+  }
+
+  // Strategy B: try framework CLIs directly
+  const cliStrategies: Array<{ label: string; archetype: ArchetypeId; command: string; outputDir: string }> = [
+    { label: 'vite build',  archetype: 'vite-react', command: 'npx vite build', outputDir: 'dist' },
+    { label: 'next build',  archetype: 'nextjs-app-router', command: 'npx next build', outputDir: 'out' },
+    { label: 'astro build', archetype: 'astro', command: 'npx astro build', outputDir: 'dist' },
+  ];
+
+  for (const strategy of cliStrategies) {
+    const archetype = ARCHETYPES[strategy.archetype];
+    emitLog({ type: 'info', message: `Trying ${strategy.label}…` });
+    const result = await buildProject(projectRoot, {
+      archetype,
+      force: true,
+      buildCommand: strategy.command,
+    });
+    if (result.success) {
+      console.log(`  [stage2] ${strategy.label} succeeded`);
+      return result;
+    }
+    console.log(`  [stage2] ${strategy.label} failed: ${result.buildError?.slice(0, 100)}`);
+  }
+
+  // All strategies failed — return the original failure for Stage 3 handling
+  return previousResult;
 }
 
 // ─── Heuristic fallback (no AI) ───────────────────────────────────────

@@ -19,9 +19,15 @@ import {
   type GeneratorDefinition,
 } from './archetypes.js';
 
+export type DetectionConfidence = 'high' | 'low';
+
 export interface DetectionResult {
   archetype: ArchetypeDefinition;
   generator: GeneratorDefinition;
+  /** HIGH = known framework match. LOW = no recognisable framework — multi-strategy build needed */
+  confidence: DetectionConfidence;
+  /** True when the project contains backend signals (API routes, server file, server-side deps) */
+  needsBackend: boolean;
 }
 
 /**
@@ -29,20 +35,23 @@ export interface DetectionResult {
  * This is the main entry point — call this from analyze/index.ts.
  */
 export async function detectProject(projectRoot: string): Promise<DetectionResult> {
-  const [archetype, generator] = await Promise.all([
+  const [{ archetype, confidence }, generator, needsBackend] = await Promise.all([
     detectArchetype(projectRoot),
     detectGenerator(projectRoot),
+    detectBackend(projectRoot),
   ]);
-  return { archetype, generator };
+  return { archetype, generator, confidence, needsBackend };
 }
 
 // ─── Archetype Detection ────────────────────────────────────────────────────
 
-async function detectArchetype(projectRoot: string): Promise<ArchetypeDefinition> {
+async function detectArchetype(
+  projectRoot: string,
+): Promise<{ archetype: ArchetypeDefinition; confidence: DetectionConfidence }> {
   const pkgPath = path.join(projectRoot, 'package.json');
 
-  // No package.json → serve as static HTML
-  if (!existsSync(pkgPath)) return ARCHETYPES['vanilla-html'];
+  // No package.json → static HTML, high confidence
+  if (!existsSync(pkgPath)) return { archetype: ARCHETYPES['vanilla-html'], confidence: 'high' };
 
   let pkg: {
     dependencies?: Record<string, string>;
@@ -53,18 +62,17 @@ async function detectArchetype(projectRoot: string): Promise<ArchetypeDefinition
   try {
     pkg = JSON.parse(await fs.readFile(pkgPath, 'utf-8'));
   } catch {
-    return ARCHETYPES['vanilla-html'];
+    return { archetype: ARCHETYPES['vanilla-html'], confidence: 'high' };
   }
 
-  // No build script → no build needed, serve as static HTML
-  if (!pkg.scripts?.build) return ARCHETYPES['vanilla-html'];
+  // No build script → static HTML, high confidence
+  if (!pkg.scripts?.build) return { archetype: ARCHETYPES['vanilla-html'], confidence: 'high' };
 
   const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
 
   // ── Priority order: nextjs → astro → vite-react → vite-vue → cra → vanilla-html
 
   if (allDeps['next']) {
-    // Distinguish App Router (app/ dir) from Pages Router (pages/ dir)
     const hasAppDir =
       existsSync(path.join(projectRoot, 'app')) ||
       existsSync(path.join(projectRoot, 'src', 'app'));
@@ -72,24 +80,59 @@ async function detectArchetype(projectRoot: string): Promise<ArchetypeDefinition
       existsSync(path.join(projectRoot, 'pages')) ||
       existsSync(path.join(projectRoot, 'src', 'pages'));
 
-    // Pages Router only when pages/ exists and app/ doesn't
-    if (hasPagesDir && !hasAppDir) return ARCHETYPES['nextjs-pages-router'];
-    // Default: App Router (covers both app/ and ambiguous cases)
-    return ARCHETYPES['nextjs-app-router'];
+    if (hasPagesDir && !hasAppDir) return { archetype: ARCHETYPES['nextjs-pages-router'], confidence: 'high' };
+    return { archetype: ARCHETYPES['nextjs-app-router'], confidence: 'high' };
   }
 
-  if (allDeps['astro']) return ARCHETYPES['astro'];
+  if (allDeps['astro']) return { archetype: ARCHETYPES['astro'], confidence: 'high' };
 
   if (allDeps['vite']) {
-    if (allDeps['react']) return ARCHETYPES['vite-react'];
-    if (allDeps['vue'])   return ARCHETYPES['vite-vue'];
+    if (allDeps['react']) return { archetype: ARCHETYPES['vite-react'], confidence: 'high' };
+    if (allDeps['vue'])   return { archetype: ARCHETYPES['vite-vue'], confidence: 'high' };
+    // Vite detected but no specific UI framework — still try to build
+    return { archetype: ARCHETYPES['vite-react'], confidence: 'low' };
   }
 
-  if (allDeps['react-scripts']) return ARCHETYPES['cra'];
+  if (allDeps['react-scripts']) return { archetype: ARCHETYPES['cra'], confidence: 'high' };
 
-  // Has a build script but we don't recognise the framework
-  // → still try to build, serve from dist/ as best effort
-  return ARCHETYPES['vanilla-html'];
+  // Has a build script but we don't recognise the framework — low confidence
+  return { archetype: ARCHETYPES['vanilla-html'], confidence: 'low' };
+}
+
+// ─── Backend Detection ──────────────────────────────────────────────────────
+
+/**
+ * Detect backend signals that indicate the project needs a server.
+ * Any one signal is enough to flag needs-backend: true.
+ */
+async function detectBackend(projectRoot: string): Promise<boolean> {
+  // Signal 1: app/api/ or pages/api/ directories → Next.js API routes
+  const apiDirPaths = [
+    path.join(projectRoot, 'app', 'api'),
+    path.join(projectRoot, 'src', 'app', 'api'),
+    path.join(projectRoot, 'pages', 'api'),
+    path.join(projectRoot, 'src', 'pages', 'api'),
+  ];
+  if (apiDirPaths.some(p => existsSync(p))) return true;
+
+  // Signal 2: server.js or server.ts in project root
+  if (
+    existsSync(path.join(projectRoot, 'server.js')) ||
+    existsSync(path.join(projectRoot, 'server.ts'))
+  ) return true;
+
+  // Signal 3: server-side runtime packages in dependencies (not devDeps)
+  const pkgPath = path.join(projectRoot, 'package.json');
+  if (existsSync(pkgPath)) {
+    try {
+      const pkg = JSON.parse(await fs.readFile(pkgPath, 'utf-8'));
+      const deps: Record<string, string> = pkg.dependencies ?? {};
+      const serverDeps = ['express', 'fastify', 'hono', 'koa', 'nest', '@nestjs/core'];
+      if (serverDeps.some(d => d in deps)) return true;
+    } catch { /* ignore */ }
+  }
+
+  return false;
 }
 
 // ─── Generator Detection ────────────────────────────────────────────────────

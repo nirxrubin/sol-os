@@ -3,6 +3,8 @@ import type { AppView, ThemeMode, Project, UploadResult } from './data/types';
 import { API } from './lib/api';
 import Landing from './components/Landing';
 import AnalysisView from './components/AnalysisView';
+import FrameworkConfirmView from './components/FrameworkConfirmView';
+import EnvVarGate from './components/EnvVarGate';
 import TopBar from './components/TopBar';
 import ProjectDashboard from './components/ProjectDashboard';
 
@@ -17,6 +19,13 @@ export default function App() {
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [deployUrl, setDeployUrl] = useState<string | undefined>(undefined);
   const [generatorId, setGeneratorId] = useState<string | undefined>(undefined);
+  const [buildFailInfo, setBuildFailInfo] = useState<{
+    archetypeId?: string;
+    buildError?: string;
+    buildOutput?: string;
+  } | null>(null);
+  // Once env vars have been reviewed (filled or skipped), skip the gate on future deploy clicks
+  const [envVarsReviewed, setEnvVarsReviewed] = useState(false);
 
   // On mount: apply theme + check if server already has a completed analysis
   useEffect(() => {
@@ -47,6 +56,8 @@ export default function App() {
     setUploadResult(null);
     setDeployUrl(undefined);
     setGeneratorId(undefined);
+    setBuildFailInfo(null);
+    setEnvVarsReviewed(false);
     setView('landing');
   };
 
@@ -72,8 +83,40 @@ export default function App() {
     return (
       <AnalysisView
         onComplete={handleAnalysisComplete}
+        onBuildFailed={(info) => {
+          setBuildFailInfo(info);
+          setView('framework-confirm');
+        }}
         polling={uploadResult !== null}
         fileCount={uploadResult?.fileCount}
+      />
+    );
+  }
+
+  if (view === 'framework-confirm') {
+    return (
+      <FrameworkConfirmView
+        detectedArchetype={buildFailInfo?.archetypeId ?? 'vite-react'}
+        buildError={buildFailInfo?.buildError}
+        buildOutput={buildFailInfo?.buildOutput}
+        onConfirmed={() => {
+          setBuildFailInfo(null);
+          setView('analyzing');
+        }}
+        onUploadPrebuilt={handleNewProject}
+      />
+    );
+  }
+
+  if (view === 'env-gate') {
+    const handleEnvGateDone = () => {
+      setEnvVarsReviewed(true);
+      setView('dashboard');
+    };
+    return (
+      <EnvVarGate
+        onComplete={handleEnvGateDone}
+        onSkip={handleEnvGateDone}
       />
     );
   }
@@ -95,6 +138,7 @@ export default function App() {
           generatorId={generatorId}
           deployUrl={deployUrl}
           onDeployUrl={setDeployUrl}
+          onPreDeploy={envVarsReviewed ? undefined : () => setView('env-gate')}
         />
       </div>
     </div>

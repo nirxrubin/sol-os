@@ -278,7 +278,7 @@ async function createDeployment(
   form.append('manifest', JSON.stringify(manifest));
 
   for (const [hash, { content, name }] of byHash) {
-    const blob = new Blob([content]);
+    const blob = new Blob([new Uint8Array(content)]);
     form.append(hash, blob, name);
   }
 

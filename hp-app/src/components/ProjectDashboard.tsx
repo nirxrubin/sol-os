@@ -8,6 +8,7 @@ interface ProjectDashboardProps {
   generatorId?: string;
   deployUrl?: string;
   onDeployUrl?: (url: string) => void;
+  onPreDeploy?: () => void;
 }
 
 type DeployStatus = 'idle' | 'loading' | 'live' | 'error';
@@ -71,6 +72,7 @@ export default function ProjectDashboard({
   generatorId,
   deployUrl: externalDeployUrl,
   onDeployUrl,
+  onPreDeploy,
 }: ProjectDashboardProps) {
   const [deployStatus, setDeployStatus] = useState<DeployStatus>(
     externalDeployUrl ? 'live' : 'idle'
@@ -81,6 +83,8 @@ export default function ProjectDashboard({
 
   const handleDeploy = useCallback(async () => {
     if (deployStatus === 'live' || deployStatus === 'loading') return;
+    // Show env var gate first if the parent wants it
+    if (onPreDeploy) { onPreDeploy(); return; }
     setDeployStatus('loading');
     setDeployError(undefined);
 

@@ -10,7 +10,7 @@ export function getWorkspacePath(): string {
 
 // ─── Project State (persisted to disk) ──────────────────────────────
 
-interface ProjectState {
+export interface ProjectState {
   projectRoot: string;   // Source root (original extracted files)
   servePath: string;     // Path to serve for preview (may be dist/ after build)
   fileTree: string[];
@@ -19,13 +19,23 @@ interface ProjectState {
   buildNeeded?: boolean;
   buildSuccess?: boolean;
   buildError?: string;
+  buildOutput?: string;
   buildCommand?: string;
   outputDir?: string;
   // Detection results
   archetypeId?: string;
+  detectionConfidence?: 'high' | 'low';
+  needsBackend?: boolean;
   generatorId?: string;
   generatorConfidence?: string;
   generatorNotice?: string;
+  // Stage 3: user-confirmed framework override (set when user corrects detection)
+  userConfirmedArchetype?: string;
+  userBuildCommand?: string;
+  // Env vars
+  requiredEnvVars?: string[];
+  providedEnvVars?: Record<string, string>;
+  envVarsComplete?: boolean;
   // Deployment state
   projectSlug?: string;
   deploymentId?: string;

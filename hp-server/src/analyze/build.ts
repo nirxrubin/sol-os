@@ -47,11 +47,12 @@ interface PackageJson {
  */
 export async function buildProject(
   projectRoot: string,
-  options?: { force?: boolean; archetype?: ArchetypeDefinition },
+  options?: { force?: boolean; archetype?: ArchetypeDefinition; buildCommand?: string },
 ): Promise<BuildResult> {
   const pkgPath = path.join(projectRoot, 'package.json');
   const force = options?.force ?? false;
   const archetype = options?.archetype;
+  const commandOverride = options?.buildCommand;
 
   // ── Archetype-driven fast path ──────────────────────────────────────────
   if (archetype) {
@@ -91,7 +92,7 @@ export async function buildProject(
         await patchSourceForPreviewArchetype(projectRoot, pkg, archetype);
       }
 
-      const buildCommand = getBuildCommandArchetype(archetype);
+      const buildCommand = commandOverride ?? getBuildCommandArchetype(archetype);
       console.log(`  Build command: ${buildCommand}`);
       const buildResult = await execAsync(buildCommand, {
         cwd: projectRoot,

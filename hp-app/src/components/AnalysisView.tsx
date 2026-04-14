@@ -14,6 +14,7 @@ interface DetectionInfo {
 
 interface AnalysisViewProps {
   onComplete: (project?: Project, detection?: DetectionInfo) => void;
+  onBuildFailed?: (info: { archetypeId?: string; buildError?: string; buildOutput?: string }) => void;
   polling?: boolean;
   fileCount?: number;
 }
@@ -38,7 +39,7 @@ function progressToStep(progress: number): number {
 
 // ─── Component ────────────────────────────────────────────────────────
 
-export default function AnalysisView({ onComplete, polling, fileCount }: AnalysisViewProps) {
+export default function AnalysisView({ onComplete, onBuildFailed, polling, fileCount }: AnalysisViewProps) {
   const [progress, setProgress] = useState(5);
   const [isDone, setIsDone]     = useState(false);
   const completedRef            = useRef(false);
@@ -84,6 +85,17 @@ export default function AnalysisView({ onComplete, polling, fileCount }: Analysi
               onComplete(project, detection);
             }
           }, 900);
+        }
+
+        // Build failed — route to Stage 3 (framework confirmation)
+        if (data.buildSuccess === false && data.status !== 'analyzing' && !cancelled) {
+          cancelled = true;
+          clearInterval(pollTimer);
+          onBuildFailed?.({
+            archetypeId: data.archetypeId,
+            buildError:  data.buildError,
+            buildOutput: data.buildOutput,
+          });
         }
       } catch { /* network blip — keep polling */ }
     }, 1500);

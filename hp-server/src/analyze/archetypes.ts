@@ -40,6 +40,8 @@ export interface ArchetypeDefinition {
     type: 'react-router' | 'vue-router' | 'file-based' | 'hash' | 'none';
     spaFallback: boolean;
   };
+  /** True when the project likely requires a server (API routes, SSR, Express) */
+  needsBackend: boolean;
   /** Injected into AI system prompt — describes routing/structure so AI doesn't re-discover it */
   aiContextHint: string;
 }
@@ -66,6 +68,7 @@ export const ARCHETYPES: Record<ArchetypeId, ArchetypeDefinition> = {
     displayName: 'Next.js (App Router)',
     build: { command: 'npm run build', outputDir: 'out', basePath: 'next-static-export' },
     routing: { type: 'file-based', spaFallback: false },
+    needsBackend: true,
     aiContextHint: [
       'Next.js 13+ App Router. Pages live in the app/ directory as page.tsx files.',
       'Routing is file-based — each folder segment = a URL segment.',
@@ -80,6 +83,7 @@ export const ARCHETYPES: Record<ArchetypeId, ArchetypeDefinition> = {
     displayName: 'Next.js (Pages Router)',
     build: { command: 'npm run build', outputDir: 'out', basePath: 'next-static-export' },
     routing: { type: 'file-based', spaFallback: false },
+    needsBackend: true,
     aiContextHint: [
       'Next.js Pages Router. Pages live in the pages/ directory.',
       'Each .tsx/.jsx file = a route (index.tsx → /, about.tsx → /about).',
@@ -93,6 +97,7 @@ export const ARCHETYPES: Record<ArchetypeId, ArchetypeDefinition> = {
     displayName: 'Vite + React',
     build: { command: 'npm run build', outputDir: 'dist', basePath: 'vite-flag' },
     routing: { type: 'react-router', spaFallback: true },
+    needsBackend: false,
     aiContextHint: [
       'Vite + React SPA. Single index.html entry point — the entire app renders into one HTML shell.',
       'Routes are defined in src/ via React Router v6.',
@@ -107,6 +112,7 @@ export const ARCHETYPES: Record<ArchetypeId, ArchetypeDefinition> = {
     displayName: 'Vite + Vue',
     build: { command: 'npm run build', outputDir: 'dist', basePath: 'vue-router' },
     routing: { type: 'vue-router', spaFallback: true },
+    needsBackend: false,
     aiContextHint: [
       'Vite + Vue SPA. Single index.html entry point.',
       'Routes defined via Vue Router — look for createRouter() in src/router/index.ts or src/router.ts.',
@@ -119,6 +125,7 @@ export const ARCHETYPES: Record<ArchetypeId, ArchetypeDefinition> = {
     displayName: 'Astro',
     build: { command: 'npm run build', outputDir: 'dist', basePath: 'none' },
     routing: { type: 'file-based', spaFallback: false },
+    needsBackend: false,
     aiContextHint: [
       'Astro static site. Pages live in src/pages/ as .astro files.',
       'File-based routing: src/pages/index.astro → /, src/pages/about.astro → /about.',
@@ -132,6 +139,7 @@ export const ARCHETYPES: Record<ArchetypeId, ArchetypeDefinition> = {
     displayName: 'Create React App',
     build: { command: 'npm run build', outputDir: 'build', basePath: 'cra-env' },
     routing: { type: 'react-router', spaFallback: true },
+    needsBackend: false,
     aiContextHint: [
       'Create React App (react-scripts). Single index.html entry point.',
       'Routes via React Router — look for <BrowserRouter> in src/index.tsx or src/App.tsx.',
@@ -143,6 +151,7 @@ export const ARCHETYPES: Record<ArchetypeId, ArchetypeDefinition> = {
     displayName: 'Static HTML',
     build: { command: 'none', outputDir: '.', basePath: 'none' },
     routing: { type: 'none', spaFallback: false },
+    needsBackend: false,
     aiContextHint: [
       'Plain HTML/CSS/JS — no build step, no framework.',
       'Each .html file is a separate page. Navigation via <a href="..."> anchor links.',
