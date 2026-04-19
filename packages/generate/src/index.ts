@@ -29,7 +29,72 @@ export * from "./types.js";
 export { forkTemplate } from "./fork.js";
 export { renderTokensCss } from "./tokens-css.js";
 export { emitTenantData } from "./emit-data.js";
-export { collectFossilizedHtml, writeAstroPages } from "./fossilize.js";
+export { collectFossilizedHtml, writeAstroPages, readSourceHtml } from "./fossilize.js";
+
+/**
+ * Fast rebuild — re-apply edits to already-fossilized tenant pages.
+ *
+ * Reads the source HTML sidecar that `writeAstroPages({ saveSourceHtml: true })`
+ * left in `.hostaposta/source-html/`, re-applies edits.json, and rewrites
+ * the Astro pages. No Claude, no ingest/fossilize — milliseconds.
+ *
+ * Use this path when the admin changes an edit and wants the tenant site
+ * updated. The caller (tenant-store) typically follows with `astro build`.
+ */
+export async function rebuildEditsInTenant(opts: {
+  tenantDir: string;
+  log?: (msg: string) => void;
+}): Promise<{ applied: number; skipped: number; warnings: string[] }> {
+  const { readSourceHtml: readSrc } = await import("./fossilize.js");
+  const { applyEditsAcrossPages: applyAll } = await import("./apply-edits.js");
+  const { writeAstroPages: writePages } = await import("./fossilize.js");
+  const fsmod = await import("node:fs/promises");
+  const pathmod = await import("node:path");
+  const log = opts.log ?? (() => {});
+
+  const sourceHtml = await readSrc(opts.tenantDir);
+  if (!sourceHtml) {
+    throw new Error(
+      `No source HTML sidecar at ${opts.tenantDir}/.hostaposta/source-html — run \`pnpm generate <caseId>\` first.`,
+    );
+  }
+
+  const carveMapPath = pathmod.join(opts.tenantDir, ".hostaposta/carve-map.json");
+  const editsPath = pathmod.join(opts.tenantDir, ".hostaposta/edits.json");
+
+  let carveMap;
+  try {
+    carveMap = JSON.parse(await fsmod.readFile(carveMapPath, "utf-8"));
+  } catch {
+    throw new Error(`No carve-map.json at ${carveMapPath}`);
+  }
+
+  let editValues = {};
+  try {
+    editValues = JSON.parse(await fsmod.readFile(editsPath, "utf-8"));
+  } catch {
+    // no edits yet — rewrite pages unchanged to normalize
+  }
+
+  const applied = applyAll({
+    pagesHtml: sourceHtml,
+    carveMap,
+    values: editValues,
+  });
+
+  await writePages({
+    pagesHtml: applied.pages,
+    tenantDir: opts.tenantDir,
+    saveSourceHtml: false, // don't overwrite the source sidecar
+    log,
+  });
+
+  return {
+    applied: applied.summary.totalApplied,
+    skipped: applied.summary.totalSkipped,
+    warnings: applied.summary.warnings,
+  };
+}
 export { carveAll, carvePage, type CarveMap, type CarvedEdit, type CarvedPage } from "./carve.js";
 export { applyEditsAcrossPages, applyEditsToPage, type EditsMap } from "./apply-edits.js";
 export { generatePixelBlocks } from "./pixel-block-generator.js";
@@ -206,10 +271,13 @@ async function runFossilize(opts: RunInternal): Promise<GenerateResult> {
     opts.log(`no edits to apply (edit via \`pnpm edit <caseId> <editId> <value>\`)`);
   }
 
-  // Phase B: write Astro pages with final HTML
+  // Phase B: write Astro pages with final HTML + save source HTML sidecar
+  // so rebuilds after admin edits can re-apply without re-running the full
+  // ingest/fossilize pipeline.
   const writeResult = await writeAstroPages({
     pagesHtml: finalPagesHtml,
     tenantDir: opts.tenantDir,
+    saveSourceHtml: true,
     log: opts.log,
   });
 

@@ -117,6 +117,10 @@ export interface WriteAstroPagesOptions {
   /** route → final HTML (post-edit-application). */
   pagesHtml: Map<string, string>;
   tenantDir: string;
+  /** Also save the pre-edit source HTML per route under
+   *  `.hostaposta/source-html/<route>/index.html`. Enables fast rebuilds
+   *  (apply-edits + rewrite pages) without re-running ingest/fossilize. */
+  saveSourceHtml?: boolean;
   log?: (msg: string) => void;
 }
 
@@ -132,6 +136,11 @@ export async function writeAstroPages(
   const pagesDir = path.join(opts.tenantDir, "src/pages");
   await fs.mkdir(pagesDir, { recursive: true });
 
+  const sourceHtmlDir = path.join(opts.tenantDir, ".hostaposta/source-html");
+  if (opts.saveSourceHtml) {
+    await fs.mkdir(sourceHtmlDir, { recursive: true });
+  }
+
   const pagesWritten: WriteAstroPagesResult["pagesWritten"] = [];
 
   for (const [route, html] of opts.pagesHtml) {
@@ -141,11 +150,47 @@ export async function writeAstroPages(
     const astroAbs = path.join(pagesDir, astroRel);
     await fs.mkdir(path.dirname(astroAbs), { recursive: true });
     await fs.writeFile(astroAbs, wrapHtmlAsAstroPage(html));
+
+    if (opts.saveSourceHtml) {
+      const srcRel = route === "/"
+        ? "index.html"
+        : path.posix.join(route.replace(/^\//, ""), "index.html");
+      const srcAbs = path.join(sourceHtmlDir, srcRel);
+      await fs.mkdir(path.dirname(srcAbs), { recursive: true });
+      await fs.writeFile(srcAbs, html);
+    }
+
     pagesWritten.push({ route, file: astroRel });
   }
 
-  log(`wrote ${pagesWritten.length} Astro pages`);
+  log(`wrote ${pagesWritten.length} Astro pages${opts.saveSourceHtml ? " + source HTML sidecar" : ""}`);
   return { pagesWritten };
+}
+
+/**
+ * Read back the source HTML saved by `writeAstroPages({ saveSourceHtml: true })`.
+ * Used by the rebuild path in tenant-store when we want to re-apply edits
+ * without running the full generate pipeline.
+ */
+export async function readSourceHtml(tenantDir: string): Promise<Map<string, string> | null> {
+  const sourceHtmlDir = path.join(tenantDir, ".hostaposta/source-html");
+  if (!existsSync(sourceHtmlDir)) return null;
+
+  const result = new Map<string, string>();
+  async function walkHtml(dir: string, routePrefix: string): Promise<void> {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        await walkHtml(path.join(dir, entry.name), `${routePrefix}/${entry.name}`);
+      } else if (entry.name === "index.html") {
+        const html = await fs.readFile(path.join(dir, entry.name), "utf-8");
+        const route = routePrefix === "" ? "/" : routePrefix;
+        result.set(route, html);
+      }
+    }
+  }
+  await walkHtml(sourceHtmlDir, "");
+  return result;
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────
