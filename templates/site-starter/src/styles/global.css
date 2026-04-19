@@ -1,0 +1,73 @@
+@import "./tokens.css";
+
+/* ── Reset ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+img, picture, video, canvas, svg { display: block; max-width: 100%; }
+input, button, textarea, select { font: inherit; }
+a { color: inherit; text-decoration: none; }
+
+/* ── Headings (token-driven) ───────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-primary);
+}
+h1 { font-size: var(--text-hero); }
+h2 { font-size: var(--text-4xl); }
+h3 { font-size: var(--text-2xl); }
+h4 { font-size: var(--text-xl); }
+
+p { color: var(--color-text); }
+
+/* ── Layout utilities ──────────────────────────────────── */
+.container {
+  max-width: var(--container-max-w);
+  margin-inline: auto;
+  padding-inline: var(--container-px);
+}
+.section {
+  padding-block: var(--section-padding-y);
+}
+.section--alt { background: var(--color-bg-alt); }
+.section--dark {
+  background: var(--color-bg-dark);
+  color: var(--color-text-inverse);
+}
+
+/* ── Scroll-reveal ─────────────────────────────────────── */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity var(--duration-slow) var(--easing-out),
+              transform var(--duration-slow) var(--easing-out);
+}
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Skip link for a11y ────────────────────────────────── */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  padding: var(--space-2) var(--space-4);
+  z-index: 100;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+.skip-link:focus { left: 0; }

@@ -14,6 +14,7 @@
     "@hostaposta/agent-runtime": "workspace:*",
     "@hostaposta/collection-parser": "workspace:*",
     "@hostaposta/collections": "workspace:*",
+    "@hostaposta/eval": "workspace:*",
     "@hostaposta/ingest": "workspace:*",
     "@hostaposta/tokens": "workspace:*",
     "dotenv": "^17.4.0"

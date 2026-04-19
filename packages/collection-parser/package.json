@@ -14,7 +14,8 @@
   "dependencies": {
     "@hostaposta/agent-runtime": "workspace:*",
     "@hostaposta/collections": "workspace:*",
-    "@hostaposta/ingest": "workspace:*"
+    "@hostaposta/ingest": "workspace:*",
+    "cheerio": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

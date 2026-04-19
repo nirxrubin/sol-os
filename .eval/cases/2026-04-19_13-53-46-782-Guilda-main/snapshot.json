@@ -1,0 +1,193 @@
+{
+  "caseId": "2026-04-19_13-53-46-782-Guilda-main",
+  "capturedAt": "2026-04-19T13:53:46.784Z",
+  "source": {
+    "kind": "zip",
+    "origin": "Guilda-main.zip"
+  },
+  "fingerprint": {
+    "archetype": "vanilla-html",
+    "generator": "UNKNOWN",
+    "pageBucket": "medium",
+    "hasNonLatin": true,
+    "routes": [
+      "/",
+      "/about",
+      "/blog",
+      "/blog-post"
+    ]
+  },
+  "quality": {
+    "score": 1,
+    "detectorRetried": false,
+    "avgExtractionConfidence": 0.88,
+    "droppedCount": 0,
+    "warningCount": 0
+  },
+  "detection": {
+    "pages": [
+      {
+        "route": "/about",
+        "title": "Guilda - אודות",
+        "htmlSnippet": " <!-- Navbar --> <nav class=\"container-fluid p-4 px-4\"> <div class=\"d-flex justify-content-between\"> <a href=\"#\" class=\"scale-up\"> <img src=\"assets/images/SVG/Search.svg\" alt=\"\" width=\"30px\"> </a> <div class=\"d-flex gap-4 align-items-center\"> <a href=\"index.html\" class=\"nav-link-item\">ראשי</a> <a href=\"blog.html\" class=\"nav-link-item\">בלוג</a> <a href=\"about.html\" class=\"nav-link-item active\">אודות</a> </div> <a href=\"#\" class=\"ws-d-flex-center flex-column scale-up\"> <img src=\"assets/images/SVG/BlackAccount.svg\" alt=\"\" width=\"30px\"> <span id=\"join\">הצטרפות</span> </a> </div> </nav> <!--END Navbar --> <!-- Page Header --> <header class=\"container ws-d-flex-center flex-column page-header\"> <a href=\"index.html\"> <img src=\"assets/images/Logos/תסריטאים לוגו שקוף.png\" id=\"header-logo\" width=\"300px\" alt=\"\"> </a> <h2>אודות האיגוד</h2> </header> <main class=\"ws-d-flex-center flex-column\"> <!-- About Intro --> <div class=\"container-fluid about-section\"> <div class=\"container about-content\"> <div class=\"about-block ws-d-flex-center flex-column\"> <h2>מי אנחנו</h2> <p> איגוד התסריטאים הישראלי הוא הבית המקצועי של כותבי התסריטים בישראל. אנחנו מאגדים תחת קורת גג אחת תסריטאים ותסריטאיות מכל רחבי הארץ, מהוותיקים ביותר ועד למתחילים שרק עכשיו צועדים את צעדיהם הראשונים בתעשייה. האיגוד נוסד מתוך אמונה עמוקה שלתסריטאים מגיע ייצוג הולם, הגנה על זכויותיהם ובמה מקצועית לקידום האמנות שלהם. </p> </div> </div> </div> <!-- Mission --> <div class=\"container-fluid orange-bg py-5\"> <div class=\"container about-content\"> <div class=\"about-block ws-d-flex-center flex-column\"> <h2 style=\"color: white;\">החזון שלנו</h2> <p style=\"color: white;\"> אנחנו מאמינים שתסריט טוב הוא הבסיס לכל יצירה קולנועית וטלוויזיונית מוצלחת. החזון שלנו הוא ליצור קהילה מקצועית חזקה ותומכת, שבה כל תסריטאי יכול לצמוח, ללמוד ולהתפתח. אנחנו פועלים למען הכרה בתפקיד המרכזי של התסריטאי בתהליך היצירה, ולמען תנאי עבודה הוגנים שמשקפים את הערך האמיתי של הכתיבה. </p> </div> </div> </div> <!-- What We Do --> <div class=\"container py-5\"> <div class=\"about-content\"> <div class=\"about-block ws-d-flex-center flex-column\"> <h2>מה אנחנו עושים</h2> </div> <div class=\"about-services-grid py-4\"> <div class=\"about-service-item ws-d-flex-center flex-column\"> <div class=\"icon-box position-relative p-4\"> <img src=\"assets/images/SVG/Information.svg\" alt=\"\" width=\"60px\"> <div class=\"note-hover\"></div> </div> <h3>מידע מקצועי</h3> <p> אנחנו מספקים מידע מקצועי עדכני בנושאי כתיבה, תעשייה, זכויות יוצרים וקרנות מימון. דרך כלים שימושיים, מאמרים ומדריכים, אנחנו מוודאים שהחברים שלנו תמיד בחזית הידע המקצועי. </p> </div> <div class=\"about-service-item ws-d-flex-center flex-column\"> <div class=\"icon-box position-relative p-4\"> <img src=\"assets/images/SVG/Document.svg\" alt=\"\" width=\"60px\"> <div class=\"note-hover\"></div> </div> <h3>שמירת יצירה</h3> <p> שירות שמירת היצירה שלנו מאפשר לתסריטאים להגן על עבודתם בשלושה שלבים פשוטים. אנחנו מבינים כמה חשוב להגן על הרעיונות שלכם, ולכן פיתחנו מערכת נוחה ומאובטחת לרישום יצירות. </p> </div> <div class=\"about-se"
+      },
+      {
+        "route": "/blog-post",
+        "title": "Guilda - מאמר",
+        "htmlSnippet": " <!-- Navbar --> <nav class=\"container-fluid p-4 px-4\"> <div class=\"d-flex justify-content-between\"> <a href=\"#\" class=\"scale-up\"> <img src=\"assets/images/SVG/Search.svg\" alt=\"\" width=\"30px\"> </a> <div class=\"d-flex gap-4 align-items-center\"> <a href=\"index.html\" class=\"nav-link-item\">ראשי</a> <a href=\"blog.html\" class=\"nav-link-item\">בלוג</a> <a href=\"about.html\" class=\"nav-link-item\">אודות</a> </div> <a href=\"#\" class=\"ws-d-flex-center flex-column scale-up\"> <img src=\"assets/images/SVG/BlackAccount.svg\" alt=\"\" width=\"30px\"> <span id=\"join\">הצטרפות</span> </a> </div> </nav> <!--END Navbar --> <!-- Post Header --> <header class=\"container ws-d-flex-center flex-column page-header\"> <a href=\"index.html\"> <img src=\"assets/images/Logos/תסריטאים לוגו שקוף.png\" id=\"header-logo\" width=\"250px\" alt=\"\"> </a> </header> <main class=\"ws-d-flex-center flex-column\"> <article class=\"container post-container\" id=\"cms-post\"></article> </main> <!-- Footer --> <footer class=\"pb-3\"> <div class=\"footer-overlay\"></div> <div class=\"ws-d-flex-center flex-column fl\"> <img src=\"assets/images/Logos/BirdLogo.png\" alt=\"\" width=\"150px\"> <div class=\"container-fluid d-flex justify-content-around links\"> <a href=\"\">כל הזכויות שמורות</a> <div class=\"social-links d-flex\"> <a href=\"\"><img src=\"assets/images/SVG/icons8-facebook-500.svg\" alt=\"\"></a> <a href=\"\"><img src=\"assets/images/SVG/icons8-twitterx.svg\" alt=\"\"></a> <a href=\"\"><img src=\"assets/images/SVG/icons8-instagram-500.svg\" alt=\"\"></a> </div> <a href=\"\">תנאי שימוש באתר</a> </div> </div> </footer> <!-- Footer --> <script src=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js\" integrity=\"sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz\" crossorigin=\"anonymous\"></script> <script src=\"assets/js/data.js\"></script> <script src=\"assets/js/cms.js\"></script> <script> CMS.renderBlogPost(\"cms-post\"); </script> "
+      },
+      {
+        "route": "/blog",
+        "title": "Guilda - בלוג",
+        "htmlSnippet": " <!-- Navbar --> <nav class=\"container-fluid p-4 px-4\"> <div class=\"d-flex justify-content-between\"> <a href=\"#\" class=\"scale-up\"> <img src=\"assets/images/SVG/Search.svg\" alt=\"\" width=\"30px\"> </a> <div class=\"d-flex gap-4 align-items-center\"> <a href=\"index.html\" class=\"nav-link-item\">ראשי</a> <a href=\"blog.html\" class=\"nav-link-item active\">בלוג</a> <a href=\"about.html\" class=\"nav-link-item\">אודות</a> </div> <a href=\"#\" class=\"ws-d-flex-center flex-column scale-up\"> <img src=\"assets/images/SVG/BlackAccount.svg\" alt=\"\" width=\"30px\"> <span id=\"join\">הצטרפות</span> </a> </div> </nav> <!--END Navbar --> <!-- Page Header --> <header class=\"container ws-d-flex-center flex-column page-header\"> <a href=\"index.html\"> <img src=\"assets/images/Logos/תסריטאים לוגו שקוף.png\" id=\"header-logo\" width=\"300px\" alt=\"\"> </a> <h2>הבלוג שלנו</h2> <p class=\"blog-subtitle\">מאמרים, טיפים וכלים שימושיים לתסריטאים ותסריטאיות</p> </header> <main class=\"ws-d-flex-center flex-column\"> <!-- Blog Grid --> <div class=\"container py-5\"> <div class=\"blog-grid\" id=\"cms-blog-grid\"></div> </div> <!-- Blog Grid --> </main> <!-- Footer --> <footer class=\"pb-3\"> <div class=\"footer-overlay\"></div> <div class=\"ws-d-flex-center flex-column fl\"> <img src=\"assets/images/Logos/BirdLogo.png\" alt=\"\" width=\"150px\"> <div class=\"container-fluid d-flex justify-content-around links\"> <a href=\"\">כל הזכויות שמורות</a> <div class=\"social-links d-flex\"> <a href=\"\"><img src=\"assets/images/SVG/icons8-facebook-500.svg\" alt=\"\"></a> <a href=\"\"><img src=\"assets/images/SVG/icons8-twitterx.svg\" alt=\"\"></a> <a href=\"\"><img src=\"assets/images/SVG/icons8-instagram-500.svg\" alt=\"\"></a> </div> <a href=\"\">תנאי שימוש באתר</a> </div> </div> </footer> <!-- Footer --> <script src=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js\" integrity=\"sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz\" crossorigin=\"anonymous\"></script> <script src=\"assets/js/data.js\"></script> <script src=\"assets/js/cms.js\"></script> <script> CMS.renderBlogGrid(\"cms-blog-grid\"); </script> "
+      },
+      {
+        "route": "/",
+        "title": "Guilda",
+        "htmlSnippet": " <!-- Navbar --> <nav class=\"container-fluid p-4 px-4\"> <div class=\"d-flex justify-content-between\"> <a href=\"#\" class=\"scale-up\"> <img src=\"assets/images/SVG/Search.svg\" alt=\"\" width=\"30px\"> </a> <div class=\"d-flex gap-4 align-items-center\"> <a href=\"index.html\" class=\"nav-link-item active\">ראשי</a> <a href=\"blog.html\" class=\"nav-link-item\">בלוג</a> <a href=\"about.html\" class=\"nav-link-item\">אודות</a> </div> <a href=\"#\" class=\"ws-d-flex-center flex-column scale-up\"> <img src=\"assets/images/SVG/BlackAccount.svg\" alt=\"\" width=\"30px\"> <span id=\"join\">הצטרפות</span> </a> </div> </nav> <!--END Navbar --> <!-- Header-Menu--> <header class=\"container ws-d-flex-start flex-column gap-4\"> <img src=\"assets/images/Logos/תסריטאים לוגו שקוף.png\" id=\"header-logo\" width=\"400px\" alt=\"\"> <div class=\"container-fluid header-menu d-flex justify-content-around\"> <a href=\"#\" class=\"cp-single-icon-link\"> <div class=\"icon-box position-relative p-4\"> <img src=\"assets/images/SVG/Information.svg\" alt=\"\" width=\"60xp\"> <div class=\"note-hover\"></div> </div> <span>מידע מקצועי</span> <span class=\"line-hover\"></span> </a> <a href=\"#\" class=\"cp-single-icon-link\"> <div class=\"icon-box position-relative p-4\"> <img src=\"assets/images/SVG/Document.svg\" alt=\"\" width=\"60px\"> <div class=\"note-hover\"></div> </div> <span>שמירת יצירה</span> <span class=\"line-hover\"></span> </a> <a href=\"#\" class=\"cp-single-icon-link\"> <div class=\"icon-box position-relative p-4\"> <img src=\"assets/images/SVG/QuestionMark.svg\" alt=\"\" width=\"60px\"> <div class=\"note-hover\"></div> </div> <span>שאלות נפוצות</span> <span class=\"line-hover\"></span> </a> <a href=\"#\" class=\"cp-single-icon-link\"> <div class=\"icon-box position-relative p-4\"> <img src=\"assets/images/SVG/Phone.svg\" alt=\"\" width=\"60px\"> <div class=\"note-hover\"></div> </div> <span>צור קשר</span> <span class=\"line-hover\"></span> </a> </div> </header> <!-- Header-Menu--> <main class=\"ws-d-flex-center flex-column\"> <!-- Call-K --> <div class=\"container-fluid d-flex align-items-center flex-column py-5 callk\"> <h2>קול קורא</h2> <div class=\"callk-slider\" id=\"cms-slider\"></div> <a href=\"blog.html\" class=\"action-btn\">קרא הכל</a> </div> <!-- Call-K --> <!-- Info --> <div class=\"container-fluid position-relative note2-bg\"> <div class=\"container d-flex align-items-center flex-column py-5 info\"> <h2>מידע מקצועי</h2> <div class=\"row py-4 gap-5 gap-md-4 gap-lg-5 position-relative\" id=\"cms-info\"></div> </div> </div> <!-- Info --> <!-- Join-Btn --> <div class=\"container ws-d-flex-center cta-section\"> <button class=\"join-btn\">הצטרפו לאיגוד</button> </div> <!-- Join-Btn --> <!-- Calender --> <div class=\"container-fluid orange-bg\"> <div class=\"container ws-d-flex-center flex-column py-5 calender\"> <h2 class=\"text-center\">הישארו מעודכנים</h2> <div class=\"rounded-iframe pt-4\"> <iframe src=\"https://calendar.google.com/calendar/embed?src=galrubin%40gmail.com&amp;ctz=Asia%2FJerusalem\" style=\"border: 0\" width=\"20\" height=\"500\" frameborder=\"0\" scrolling=\"no\"></iframe> </div> </div>"
+      }
+    ],
+    "output": {
+      "detectedCollections": [
+        {
+          "type": "blog",
+          "confidence": 1,
+          "evidence": [
+            "Dedicated /blog route with <div class='blog-grid' id='cms-blog-grid'> — CMS-powered index",
+            "Dedicated /blog-post route with <article id='cms-post'> — CMS-powered detail page",
+            "Home page (/) contains 'קול קורא' (Call for entries) section with id='cms-slider' linking to blog.html — confirms blog feed on home"
+          ],
+          "entries": [],
+          "indexPages": [
+            {
+              "route": "/blog"
+            }
+          ],
+          "detailPages": [
+            {
+              "pattern": "/blog-post",
+              "exampleRoute": "/blog-post"
+            }
+          ]
+        },
+        {
+          "type": "team",
+          "confidence": 0.85,
+          "evidence": [
+            "Home page (/) contains <div class='contact-grid' id='cms-team'> under a 'צרו קשר' (Contact) heading — CMS-keyed team grid",
+            "/about page contains <div class='contact-grid' id='cms-team-about'> under the same 'צרו קשר' heading — identical pattern on two pages",
+            "Cross-page reuse of the cms-team grid (/ and /about) confirms a reusable people collection, not inline copy"
+          ],
+          "entries": [],
+          "indexPages": [
+            {
+              "route": "/"
+            },
+            {
+              "route": "/about"
+            }
+          ]
+        },
+        {
+          "type": "service",
+          "confidence": 0.8,
+          "evidence": [
+            "Section heading 'מה אנחנו עושים' (What we do) on /about — strong semantic anchor for service collection",
+            "about-services-grid contains 4 structurally parallel about-service-item elements, each with icon + <h3> + <p>: מידע מקצועי, שמירת יצירה, ייעוץ ותמיכה, קשרים בתעשייה",
+            "Each item is an independent offerable unit with its own title and description — not a process flow (items have no step numbers and are not sequentially dependent)"
+          ],
+          "entries": [
+            {
+              "data": {
+                "name": "מידע מקצועי",
+                "slug": "miday-miktzoi",
+                "description": "אנחנו מספקים מידע מקצועי עדכני בנושאי כתיבה, תעשייה, זכויות יוצרים וקרנות מימון. דרך כלים שימושיים, מאמרים ומדריכים, אנחנו מוודאים שהחברים שלנו תמיד בחזית הידע המקצועי.",
+                "icon": "assets/images/SVG/Information.svg"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "/about",
+                "domPath": "div.about-services-grid > div.about-service-item:nth-child(1)"
+              },
+              "confidence": 0.88,
+              "warnings": [
+                "slug transliterated from Hebrew; verify preferred slug with site owner",
+                "features field not present in source",
+                "pricing field not present in source"
+              ]
+            },
+            {
+              "data": {
+                "name": "שמירת יצירה",
+                "slug": "shmirat-yetzira",
+                "description": "שירות שמירת היצירה שלנו מאפשר לתסריטאים להגן על עבודתם בשלושה שלבים פשוטים. אנחנו מבינים כמה חשוב להגן על הרעיונות שלכם, ולכן פיתחנו מערכת נוחה ומאובטחת לרישום יצירות.",
+                "icon": "assets/images/SVG/Document.svg"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "/about",
+                "domPath": "div.about-services-grid > div.about-service-item:nth-child(2)"
+              },
+              "confidence": 0.88,
+              "warnings": [
+                "slug transliterated from Hebrew; verify preferred slug with site owner",
+                "features field not present in source",
+                "pricing field not present in source"
+              ]
+            },
+            {
+              "data": {
+                "name": "ייעוץ ותמיכה",
+                "slug": "yeutz-vtmicha",
+                "description": "יש לכם שאלות? אנחנו כאן בשבילכם. צוות המומחים שלנו זמין לענות על שאלות בנושאי חוזים, זכויות, הגשות לקרנות ועוד. אנחנו מלווים את החברים שלנו בכל שלב בקריירה.",
+                "icon": "assets/images/SVG/QuestionMark.svg"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "/about",
+                "domPath": "div.about-services-grid > div.about-service-item:nth-child(3)"
+              },
+              "confidence": 0.88,
+              "warnings": [
+                "slug transliterated from Hebrew; verify preferred slug with site owner",
+                "features field not present in source",
+                "pricing field not present in source"
+              ]
+            },
+            {
+              "data": {
+                "name": "קשרים בתעשייה",
+                "slug": "kshrim-btaasia",
+                "description": "דרך האיגוד תוכלו ליצור קשרים עם עמיתים למקצוע, מפיקים, במאים וגורמים נוספים בתעשייה. אנחנו מקיימים אירועים, מפגשים וסדנאות שמחברים בין אנשים ופותחים דלתות חדשות.",
+                "icon": "assets/images/SVG/Phone.svg"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "/about",
+                "domPath": "div.about-services-grid > div.about-service-item:nth-child(4)"
+              },
+              "confidence": 0.88,
+              "warnings": [
+                "slug transliterated from Hebrew; verify preferred slug with site owner",
+                "features field not present in source",
+                "pricing field not present in source"
+              ]
+            }
+          ],
+          "indexPages": [
+            {
+              "route": "/about"
+            }
+          ]
+        }
+      ],
+      "unmappedStructured": [],
+      "warnings": [],
+      "metrics": {
+        "pagesAnalyzed": 4,
+        "totalEntriesExtracted": 4,
+        "averageConfidence": 0.88,
+        "highConfidenceCount": 4,
+        "lowConfidenceCount": 0
+      }
+    }
+  },
+  "label": "unlabeled",
+  "promptVersion": "detect-v2+digest-v2"
+}

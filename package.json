@@ -5,9 +5,12 @@
   "type": "module",
   "packageManager": "pnpm@9.12.0",
   "scripts": {
-    "ingest": "pnpm --filter @hostaposta/ingest-cli start --",
-    "build": "pnpm -r build",
-    "typecheck": "pnpm -r typecheck"
+    "ingest":   "pnpm --filter @hostaposta/ingest-cli start --",
+    "eval":     "pnpm --filter @hostaposta/eval-cli start --",
+    "generate": "pnpm --filter @hostaposta/generate-cli start --",
+    "edit":     "pnpm --filter @hostaposta/edit-cli start --",
+    "build":    "pnpm -r build",
+    "typecheck":"pnpm -r typecheck"
   },
   "devDependencies": {
     "typescript": "~5.9.3",

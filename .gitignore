@@ -15,6 +15,10 @@ out/
 hp-server/.workspace/
 .workspace/
 .ingest-out/
+.tenants/
+
+# Local test fixtures — don't commit large demo ZIPs
+*.zip
 
 # Brainstorm sessions
 .superpowers/
@@ -27,3 +31,4 @@ hp-server/.workspace/
 
 # Logs
 *.log
+.astro/

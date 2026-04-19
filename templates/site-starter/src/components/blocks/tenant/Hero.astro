@@ -1,0 +1,126 @@
+---
+interface Props {
+  eyebrow?: string;
+  headline: string;
+  subtitle?: string;
+  ctaText?: string;
+  ctaHref?: string;
+  secondaryCtaText?: string;
+  secondaryCtaHref?: string;
+  variant?: 'centered' | 'dark';
+  size?: 'compact' | 'default' | 'immersive';
+}
+const blok = Astro.props;
+const variant = blok.variant ?? 'centered';
+const size = blok.size ?? 'default';
+const isDark = variant === 'dark';
+---
+<section
+  class:list={['hero', `hero--${variant}`, `hero--size-${size}`]}
+  data-theme={isDark ? 'dark' : undefined}
+  data-reveal
+>
+  <div class="container">
+    <div class="hero__content">
+      {blok.eyebrow && <span class="hero__eyebrow">{blok.eyebrow}</span>}
+      <h1 class="hero__headline">{blok.headline}</h1>
+      {blok.subtitle && <p class="hero__sub">{blok.subtitle}</p>}
+      {(blok.ctaText || blok.secondaryCtaText) && (
+        <div class="hero__ctas">
+          {blok.ctaText && (
+            <a class="btn btn--primary" href={blok.ctaHref ?? '#'}>{blok.ctaText}</a>
+          )}
+          {blok.secondaryCtaText && (
+            <a class="btn btn--secondary" href={blok.secondaryCtaHref ?? '#'}>{blok.secondaryCtaText}</a>
+          )}
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+  .hero[data-theme="dark"] { background: var(--color-bg-dark); }
+
+  .hero--size-compact   { padding-block: var(--space-12); }
+  .hero--size-default   { padding-block: var(--space-20); }
+  .hero--size-immersive { padding-block: calc(var(--space-20) * 1.5); }
+
+  .hero__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-6);
+    text-align: center;
+    max-width: 720px;
+    margin-inline: auto;
+  }
+
+  .hero__eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+  }
+
+  .hero__headline {
+    font-family: var(--font-display);
+    font-size: var(--text-hero);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-primary);
+    max-width: 20ch;
+  }
+  .hero[data-theme="dark"] .hero__headline { color: var(--color-text-inverse); }
+
+  .hero__sub {
+    font-size: var(--text-lg);
+    line-height: var(--leading-normal);
+    color: var(--color-text);
+    max-width: 560px;
+  }
+  .hero[data-theme="dark"] .hero__sub { color: rgba(255,255,255,0.85); }
+
+  .hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    justify-content: center;
+    margin-top: var(--space-2);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-3) var(--space-6);
+    font-weight: var(--font-weight-medium);
+    border-radius: var(--radius-full);
+    border: 1px solid transparent;
+    transition: transform var(--duration-fast) var(--easing-out);
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn--primary {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+  }
+  .btn--secondary {
+    background: var(--color-bg-card);
+    color: var(--color-primary);
+    border-color: var(--color-border);
+  }
+  .hero[data-theme="dark"] .btn--secondary {
+    background: transparent;
+    color: var(--color-text-inverse);
+    border-color: rgba(255,255,255,0.4);
+  }
+</style>

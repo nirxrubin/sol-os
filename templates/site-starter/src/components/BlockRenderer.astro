@@ -1,0 +1,26 @@
+---
+import type { GeneratedBlockInstance } from '~/data/types';
+
+interface Props { blocks: GeneratedBlockInstance[] }
+const { blocks } = Astro.props;
+
+// Eagerly load all tenant block components so the renderer can resolve
+// them by name at render time. import.meta.glob is evaluated at build.
+const tenantBlocks = import.meta.glob<{ default: any }>('./blocks/tenant/*.astro', { eager: true });
+
+function resolve(componentName: string): any {
+  const key = `./blocks/tenant/${componentName}.astro`;
+  return tenantBlocks[key]?.default;
+}
+---
+{blocks.map((block) => {
+  const Component = resolve(block.componentName);
+  if (!Component) {
+    return (
+      <div style="padding:2rem;border:1px dashed #c00;color:#c00;font-family:monospace;font-size:0.875rem;">
+        Missing block component: <code>{block.componentName}</code>
+      </div>
+    );
+  }
+  return <Component {...block.props} />;
+})}

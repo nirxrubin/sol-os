@@ -1,0 +1,104 @@
+/* ────────────────────────────────────────────────────────────────
+   TOKEN LAYER 1 — Foundation tokens (:root)
+   ────────────────────────────────────────────────────────────────
+   One source of truth for the tenant's brand system. The generator
+   overwrites this file with values from the extracted TokenSet.
+   Every block references these tokens — hardcoded hex/px/font values
+   are rejected by the verify gate.
+   ──────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Colors ─────────────────────────────────────────── */
+  --color-bg: #ffffff;
+  --color-bg-alt: #fafafa;
+  --color-bg-card: #ffffff;
+  --color-bg-dark: #0a0a0a;
+  --color-primary: #0a0a0a;
+  --color-secondary: #525252;
+  --color-accent: #0066ff;
+  --color-text: #0a0a0a;
+  --color-text-muted: #737373;
+  --color-text-inverse: #ffffff;
+  --color-border: #e5e5e5;
+
+  /* ── Typography ─────────────────────────────────────── */
+  --font-display: Inter, system-ui, -apple-system, sans-serif;
+  --font-body:    Inter, system-ui, -apple-system, sans-serif;
+  --font-mono:    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Scale */
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+  --text-5xl:  3rem;
+  --text-hero: clamp(2.25rem, 6vw, 4rem);
+
+  /* Weights / tracking / leading */
+  --font-weight-regular: 400;
+  --font-weight-medium:  500;
+  --font-weight-bold:    700;
+  --tracking-tight:  -0.025em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.05em;
+  --leading-tight:    1.2;
+  --leading-normal:   1.5;
+  --leading-loose:    1.75;
+
+  /* ── Spacing scale (rem) ────────────────────────────── */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+
+  /* Page-level layout */
+  --section-padding-y: var(--space-20);
+  --container-max-w:   1200px;
+  --container-px:      var(--space-6);
+
+  /* ── Radii ──────────────────────────────────────────── */
+  --radius-sm:   0.25rem;
+  --radius-md:   0.5rem;
+  --radius-lg:   0.75rem;
+  --radius-xl:   1rem;
+  --radius-full: 9999px;
+
+  /* ── Motion ─────────────────────────────────────────── */
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+  --easing-out:    cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ── Shadows ────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* ── Layer 2: Page-level overrides ─────────────────────────────
+   Attach page-specific token variants via a data-page attribute.
+   Example:
+     [data-page="dark-launch"] { --color-bg: #0a0a0a; --color-text: #ffffff; }
+   Generator may emit these on a per-page basis.
+   ────────────────────────────────────────────────────────────── */
+
+/* ── Dark theme (opt-in via data-theme="dark") ─────────────────
+   Flips the foundation for sections that live on a dark surface.
+   ────────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --color-bg:         var(--color-bg-dark);
+  --color-text:       var(--color-text-inverse);
+  --color-text-muted: rgba(255, 255, 255, 0.7);
+  --color-border:     rgba(255, 255, 255, 0.15);
+}

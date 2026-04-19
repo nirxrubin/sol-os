@@ -1,0 +1,30 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import BlockRenderer from '~/components/BlockRenderer.astro';
+import { DATA } from '~/data';
+import type { GetStaticPaths } from 'astro';
+
+export const getStaticPaths: GetStaticPaths = () => {
+  return DATA.pages.map((page) => {
+    // Homepage: empty slug (Astro serves it at /)
+    const slugPath = page.slug === '/' || page.slug === ''
+      ? undefined
+      : page.slug.replace(/^\/+/, '');
+    return {
+      params: { slug: slugPath },
+      props: { page },
+    };
+  });
+};
+
+const { page } = Astro.props as { page: import('~/data/types').PageDef };
+---
+<BaseLayout
+  title={page.title}
+  description={page.description}
+  dataPage={page.dataPage}
+  lang={DATA.lang}
+  dir={DATA.dir}
+>
+  <BlockRenderer blocks={page.blocks} />
+</BaseLayout>

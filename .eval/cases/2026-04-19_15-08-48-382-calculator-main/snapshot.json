@@ -1,0 +1,49 @@
+{
+  "caseId": "2026-04-19_15-08-48-382-calculator-main",
+  "capturedAt": "2026-04-19T15:08:48.383Z",
+  "source": {
+    "kind": "zip",
+    "origin": "calculator-main.zip"
+  },
+  "fingerprint": {
+    "archetype": "vanilla-html",
+    "generator": "UNKNOWN",
+    "pageBucket": "small",
+    "hasNonLatin": false,
+    "routes": [
+      "/"
+    ]
+  },
+  "quality": {
+    "score": 0.7000000000000001,
+    "detectorRetried": false,
+    "avgExtractionConfidence": 0,
+    "droppedCount": 0,
+    "warningCount": 1
+  },
+  "detection": {
+    "pages": [
+      {
+        "route": "/",
+        "title": "CalcHub — Calculator, Blog & More",
+        "htmlSnippet": " <!-- Particle canvas background --> <canvas id=\"particles-canvas\"></canvas> <!-- ===== NAVIGATION ===== --> <nav class=\"navbar\" id=\"navbar\"> <div class=\"nav-inner\"> <a class=\"nav-brand\" href=\"#\" onclick=\"navigate('home',event)\"> <div class=\"brand-logo\">C</div> <span class=\"brand-text\">CalcHub</span> </a> <button class=\"nav-toggle\" id=\"nav-toggle\" onclick=\"toggleMenu()\" aria-label=\"Toggle menu\"> <span></span><span></span><span></span> </button> <ul class=\"nav-links\" id=\"nav-links\"> <li><a href=\"#\" class=\"nav-link active\" data-page=\"home\" onclick=\"navigate('home',event)\">Home</a></li> <li><a href=\"#\" class=\"nav-link\" data-page=\"calculator\" onclick=\"navigate('calculator',event)\">Calculator</a></li> <li><a href=\"#\" class=\"nav-link\" data-page=\"blog\" onclick=\"navigate('blog',event)\">Blog</a></li> <li><a href=\"#\" class=\"nav-link\" data-page=\"todo\" onclick=\"navigate('todo',event)\">Tasks</a></li> <li><a href=\"#\" class=\"nav-link\" data-page=\"gallery\" onclick=\"navigate('gallery',event)\">Gallery</a></li> <li><a href=\"#\" class=\"nav-link\" data-page=\"about\" onclick=\"navigate('about',event)\">About</a></li> <li><a href=\"#\" class=\"nav-link\" data-page=\"contact\" onclick=\"navigate('contact',event)\">Contact</a></li> </ul> <div class=\"nav-actions\"> <button class=\"theme-toggle\" id=\"theme-toggle\" onclick=\"toggleTheme()\" title=\"Toggle theme\"> <span class=\"theme-icon-light\">☀️</span> <span class=\"theme-icon-dark\">🌙</span> </button> </div> </div> </nav> <!-- ===== PAGES CONTAINER ===== --> <main id=\"app\"> <!-- HOME --> <section id=\"page-home\" class=\"page active\"></section> <!-- CALCULATOR --> <section id=\"page-calculator\" class=\"page\"></section> <!-- BLOG --> <section id=\"page-blog\" class=\"page\"></section> <!-- TODO --> <section id=\"page-todo\" class=\"page\"></section> <!-- GALLERY --> <section id=\"page-gallery\" class=\"page\"></section> <!-- ABOUT --> <section id=\"page-about\" class=\"page\"></section> <!-- CONTACT --> <section id=\"page-contact\" class=\"page\"></section> <!-- AUTH --> <section id=\"page-auth\" class=\"page\"></section> <!-- DASHBOARD --> <section id=\"page-dashboard\" class=\"page\"></section> <!-- ADMIN --> <section id=\"page-admin\" class=\"page\"></section> </main> <!-- ===== FOOTER ===== --> <footer class=\"footer\"> <div class=\"footer-wave\"> <svg viewBox=\"0 0 1440 120\" preserveAspectRatio=\"none\"> <path d=\"M0,64 C480,150 960,-20 1440,64 L1440,120 L0,120 Z\" fill=\"var(--footer-bg)\"></path> </svg> </div> <div class=\"footer-content\"> <div class=\"footer-grid\"> <div class=\"footer-col\"> <div class=\"footer-brand\"> <div class=\"brand-logo\">C</div> <span>CalcHub</span> </div> <p class=\"footer-desc\">Your all-in-one productivity suite for the modern web. Fast, beautiful, private.</p> <div class=\"footer-socials\"> <a href=\"#\" class=\"social-btn\" title=\"GitHub\"> <svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1."
+      }
+    ],
+    "output": {
+      "detectedCollections": [],
+      "unmappedStructured": [],
+      "warnings": [
+        "Skipped detection: trivial single-page site (7026 bytes, no route patterns) — unlikely to contain collection content"
+      ],
+      "metrics": {
+        "pagesAnalyzed": 1,
+        "totalEntriesExtracted": 0,
+        "averageConfidence": 0,
+        "highConfidenceCount": 0,
+        "lowConfidenceCount": 0
+      }
+    }
+  },
+  "label": "unlabeled",
+  "promptVersion": "detect-v2+digest-v2"
+}

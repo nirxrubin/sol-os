@@ -47,6 +47,9 @@ export interface CallOptions {
   trace?: string;
   /** Optional max-tokens hint (Agent SDK doesn't expose this directly; reserved for future). */
   maxTokens?: number;
+  /** Called if callClaudeJson had to retry due to malformed JSON. Use this to track
+   *  quality signal (e.g. for eval scoring). */
+  onJsonRetry?: () => void;
 }
 
 export class AgentCallError extends Error {
@@ -104,6 +107,7 @@ export async function callClaudeJson<T>(opts: CallOptions): Promise<T> {
   try {
     return JSON.parse(stripCodeFence(raw)) as T;
   } catch {
+    opts.onJsonRetry?.();
     const raw2 = await callClaude({
       ...opts,
       user: opts.user + "\n\nReminder: respond with valid JSON only — no prose, no code fences.",

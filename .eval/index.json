@@ -1,0 +1,187 @@
+[
+  {
+    "caseId": "2026-04-19_15-11-08-116-pas00k-main",
+    "capturedAt": "2026-04-19T15:11:08.117Z",
+    "origin": "pas00k-main.zip",
+    "fingerprint": {
+      "archetype": "vite-react",
+      "generator": "LOVABLE",
+      "pageBucket": "medium",
+      "hasNonLatin": false,
+      "routes": [
+        "/",
+        "/about",
+        "/craft",
+        "/journal",
+        "/shop",
+        "/verses"
+      ]
+    },
+    "quality": {
+      "score": 0.9720000000000001,
+      "detectorRetried": false,
+      "avgExtractionConfidence": 0.5733333333333334,
+      "droppedCount": 0,
+      "warningCount": 0
+    },
+    "label": "unlabeled",
+    "promptVersion": "detect-v2+digest-v2"
+  },
+  {
+    "caseId": "2026-04-19_15-08-48-382-calculator-main",
+    "capturedAt": "2026-04-19T15:08:48.383Z",
+    "origin": "calculator-main.zip",
+    "fingerprint": {
+      "archetype": "vanilla-html",
+      "generator": "UNKNOWN",
+      "pageBucket": "small",
+      "hasNonLatin": false,
+      "routes": [
+        "/"
+      ]
+    },
+    "quality": {
+      "score": 0.7000000000000001,
+      "detectorRetried": false,
+      "avgExtractionConfidence": 0,
+      "droppedCount": 0,
+      "warningCount": 1
+    },
+    "label": "unlabeled",
+    "promptVersion": "detect-v2+digest-v2"
+  },
+  {
+    "caseId": "2026-04-19_15-05-30-443-pas00k-main",
+    "capturedAt": "2026-04-19T15:05:30.444Z",
+    "origin": "pas00k-main.zip",
+    "fingerprint": {
+      "archetype": "vite-react",
+      "generator": "LOVABLE",
+      "pageBucket": "medium",
+      "hasNonLatin": false,
+      "routes": [
+        "/",
+        "/about",
+        "/craft",
+        "/journal",
+        "/shop",
+        "/verses"
+      ]
+    },
+    "quality": {
+      "score": 0.8190000000000001,
+      "detectorRetried": true,
+      "avgExtractionConfidence": 0.5633333333333334,
+      "droppedCount": 0,
+      "warningCount": 0
+    },
+    "label": "unlabeled",
+    "promptVersion": "detect-v2+digest-v2"
+  },
+  {
+    "caseId": "2026-04-19_14-07-48-209-Guilda-main",
+    "capturedAt": "2026-04-19T14:07:48.210Z",
+    "origin": "Guilda-main.zip",
+    "fingerprint": {
+      "archetype": "vanilla-html",
+      "generator": "UNKNOWN",
+      "pageBucket": "medium",
+      "hasNonLatin": true,
+      "routes": [
+        "/",
+        "/about",
+        "/blog",
+        "/blog-post"
+      ]
+    },
+    "quality": {
+      "score": 1,
+      "detectorRetried": false,
+      "avgExtractionConfidence": 0.85,
+      "droppedCount": 0,
+      "warningCount": 0
+    },
+    "label": "unlabeled",
+    "promptVersion": "detect-v2+digest-v2"
+  },
+  {
+    "caseId": "2026-04-19_13-53-46-782-Guilda-main",
+    "capturedAt": "2026-04-19T13:53:46.784Z",
+    "origin": "Guilda-main.zip",
+    "fingerprint": {
+      "archetype": "vanilla-html",
+      "generator": "UNKNOWN",
+      "pageBucket": "medium",
+      "hasNonLatin": true,
+      "routes": [
+        "/",
+        "/about",
+        "/blog",
+        "/blog-post"
+      ]
+    },
+    "quality": {
+      "score": 1,
+      "detectorRetried": false,
+      "avgExtractionConfidence": 0.88,
+      "droppedCount": 0,
+      "warningCount": 0
+    },
+    "label": "unlabeled",
+    "promptVersion": "detect-v2+digest-v2"
+  },
+  {
+    "caseId": "2026-04-19_13-20-40-590-pas00k-main",
+    "capturedAt": "2026-04-19T13:20:40.594Z",
+    "origin": "pas00k-main.zip",
+    "fingerprint": {
+      "archetype": "vite-react",
+      "generator": "LOVABLE",
+      "pageBucket": "medium",
+      "hasNonLatin": false,
+      "routes": [
+        "/",
+        "/about",
+        "/craft",
+        "/journal",
+        "/shop",
+        "/verses"
+      ]
+    },
+    "quality": {
+      "score": 0.8,
+      "detectorRetried": true,
+      "avgExtractionConfidence": 0.5,
+      "droppedCount": 0,
+      "warningCount": 0
+    },
+    "label": "unlabeled",
+    "promptVersion": "detect-v2+digest-v2"
+  },
+  {
+    "caseId": "2026-04-19_13-18-17-638-Guilda-main",
+    "capturedAt": "2026-04-19T13:18:17.639Z",
+    "origin": "Guilda-main.zip",
+    "fingerprint": {
+      "archetype": "vanilla-html",
+      "generator": "UNKNOWN",
+      "pageBucket": "medium",
+      "hasNonLatin": true,
+      "routes": [
+        "/",
+        "/about",
+        "/blog",
+        "/blog-post"
+      ]
+    },
+    "quality": {
+      "score": 1,
+      "detectorRetried": false,
+      "avgExtractionConfidence": 0.85,
+      "droppedCount": 0,
+      "warningCount": 0
+    },
+    "label": "unlabeled",
+    "promptVersion": "detect-v2+digest-v2"
+  }
+]

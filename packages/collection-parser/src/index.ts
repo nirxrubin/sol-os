@@ -19,7 +19,17 @@ export { dedupeAndValidate } from "./dedupe.js";
 
 const HIGH_CONFIDENCE_FLOOR = 0.6; // entries below this go to "low" bucket
 
-export async function parseCollections(ingest: IngestionResult): Promise<CollectionExtractionResult> {
+export interface ParseCollectionsOptions {
+  /** Optional few-shot block injected into the detector prompt (from the eval corpus). */
+  fewShotBlock?: string;
+  /** Called if the detector had to retry due to malformed JSON. Used by eval to score quality. */
+  onDetectorRetry?: () => void;
+}
+
+export async function parseCollections(
+  ingest: IngestionResult,
+  opts: ParseCollectionsOptions = {},
+): Promise<CollectionExtractionResult> {
   const warnings: string[] = [];
 
   if (ingest.pages.length === 0) {
@@ -31,8 +41,30 @@ export async function parseCollections(ingest: IngestionResult): Promise<Collect
     };
   }
 
+  // Short-circuit trivial single-page sites (tools / utilities / one-shot apps).
+  // Saves ~40s + 2 Sonnet calls on ingests with no realistic collection content.
+  const totalHtmlBytes = ingest.pages.reduce((n, p) => n + p.html.length, 0);
+  const isTrivialSite =
+    ingest.pages.length === 1 &&
+    totalHtmlBytes < 10_000 &&
+    ingest.routes.patterns.length === 0;
+
+  if (isTrivialSite) {
+    return {
+      detectedCollections: [],
+      unmappedStructured: [],
+      warnings: [
+        `Skipped detection: trivial single-page site (${totalHtmlBytes} bytes, no route patterns) — unlikely to contain collection content`,
+      ],
+      metrics: { ...emptyMetrics(), pagesAnalyzed: ingest.pages.length },
+    };
+  }
+
   // Skill 1: detect
-  const detection = await detectCollectionTypes(ingest);
+  const detection = await detectCollectionTypes(ingest, {
+    fewShotBlock: opts.fewShotBlock,
+    onRetry: opts.onDetectorRetry,
+  });
 
   if (detection.candidates.length === 0) {
     return {

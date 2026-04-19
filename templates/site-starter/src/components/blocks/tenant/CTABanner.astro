@@ -1,0 +1,77 @@
+---
+interface Props {
+  heading: string;
+  subheading?: string;
+  ctaText: string;
+  ctaHref: string;
+  variant?: 'default' | 'dark';
+}
+const blok = Astro.props;
+const isDark = (blok.variant ?? 'default') === 'dark';
+---
+<section class:list={['cta-banner', `cta-banner--${blok.variant ?? 'default'}`]} data-theme={isDark ? 'dark' : undefined} data-reveal>
+  <div class="container">
+    <div class="cta-banner__content">
+      <div>
+        <h2 class="cta-banner__heading">{blok.heading}</h2>
+        {blok.subheading && <p class="cta-banner__sub">{blok.subheading}</p>}
+      </div>
+      <a class="cta-banner__btn" href={blok.ctaHref}>{blok.ctaText}</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta-banner {
+    padding-block: var(--section-padding-y);
+    background: var(--color-bg-alt);
+  }
+  .cta-banner[data-theme="dark"] {
+    background: var(--color-bg-dark);
+    color: var(--color-text-inverse);
+  }
+  .cta-banner__content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-8);
+    padding: var(--space-12);
+    border-radius: var(--radius-xl);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+  }
+  .cta-banner[data-theme="dark"] .cta-banner__content {
+    background: transparent;
+    border-color: rgba(255,255,255,0.15);
+  }
+  .cta-banner__heading {
+    font-size: var(--text-3xl);
+    color: var(--color-primary);
+  }
+  .cta-banner[data-theme="dark"] .cta-banner__heading { color: var(--color-text-inverse); }
+  .cta-banner__sub {
+    color: var(--color-text-muted);
+    font-size: var(--text-lg);
+    margin-top: var(--space-2);
+  }
+  .cta-banner[data-theme="dark"] .cta-banner__sub { color: rgba(255,255,255,0.75); }
+  .cta-banner__btn {
+    flex-shrink: 0;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-full);
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    font-weight: var(--font-weight-medium);
+    transition: transform var(--duration-fast) var(--easing-out);
+  }
+  .cta-banner[data-theme="dark"] .cta-banner__btn {
+    background: var(--color-text-inverse);
+    color: var(--color-bg-dark);
+  }
+  .cta-banner__btn:hover { transform: translateY(-1px); }
+
+  @media (max-width: 720px) {
+    .cta-banner__content { flex-direction: column; text-align: center; align-items: stretch; padding: var(--space-8); }
+    .cta-banner__btn { text-align: center; }
+  }
+</style>

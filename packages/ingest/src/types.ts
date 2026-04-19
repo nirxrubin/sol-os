@@ -82,6 +82,11 @@ export interface IngestionResult {
   /** Built filesystem path (when applicable) — useful for downstream tooling. */
   buildPath?: string;
 
+  /** For SPA archetypes that went through headless rendering, the path to
+   *  the per-route rendered HTML tree. Downstream (e.g. fossilize) should
+   *  walk this instead of build.outputPath. */
+  renderedOutputPath?: string;
+
   /** Parsed pages — keyed by route. Always present, may be empty if build failed. */
   pages: ParsedPage[];
 

@@ -27,6 +27,7 @@ loadEnv({ path: path.join(repoRoot, ".env") });
 import { ingestFromZip } from "@hostaposta/ingest";
 import { extractTokens } from "@hostaposta/tokens";
 import { parseCollections } from "@hostaposta/collection-parser";
+import { captureCase, selectFewShotCases, formatFewShotPrompt } from "@hostaposta/eval";
 
 interface ReportShape {
   generatedAt: string;
@@ -117,16 +118,31 @@ async function main(): Promise<void> {
   let tokens: unknown = null;
   let collections: unknown = null;
 
+  const evalDir = path.join(repoRoot, ".eval");
+  let detectorRetried = false;
+
   if (skipAi) {
     console.log("\n[hp-ingest] skipping AI stages (--skip-ai)");
   } else if (!ingest.build.success) {
     console.log("\n[hp-ingest] build failed — skipping AI stages");
   } else {
-    console.log("\n[hp-ingest] running tokens + collections in parallel…");
+    // Pull few-shot examples from the eval corpus before detection runs.
+    const fewShot = await selectFewShotCases({ evalDir, target: ingest, limit: 2 });
+    const fewShotBlock = formatFewShotPrompt(fewShot);
+    if (fewShot.length > 0) {
+      console.log(`\n[hp-ingest] few-shot: ${fewShot.length} prior cases (${fewShot.map((c) => c.reason).join(" | ")})`);
+    } else {
+      console.log("\n[hp-ingest] few-shot: no matching prior cases (first of its kind)");
+    }
+
+    console.log("[hp-ingest] running tokens + collections in parallel…");
     const aiStart = Date.now();
     const [tokensResult, collectionsResult] = await Promise.all([
       extractTokens(ingest).catch((err) => ({ error: (err as Error).message })),
-      parseCollections(ingest).catch((err) => ({ error: (err as Error).message })),
+      parseCollections(ingest, {
+        fewShotBlock,
+        onDetectorRetry: () => { detectorRetried = true; },
+      }).catch((err) => ({ error: (err as Error).message })),
     ]);
     stages.ai = Date.now() - aiStart;
     tokens = tokensResult;
@@ -171,6 +187,22 @@ async function main(): Promise<void> {
 
   await fs.writeFile(outPath, JSON.stringify(report, null, 2));
   console.log(`\n[hp-ingest] report written → ${outPath}`);
+
+  // Capture the case into the eval corpus for future few-shot and learning.
+  if (!skipAi && ingest.build.success && collections && typeof collections === "object" && "detectedCollections" in collections) {
+    try {
+      const snapshot = await captureCase({
+        evalDir,
+        ingestion: ingest,
+        collections: collections as import("@hostaposta/collection-parser").CollectionExtractionResult,
+        detectorRetried,
+      });
+      console.log(`[hp-ingest] eval case captured → ${snapshot.caseId} (quality ${(snapshot.quality.score * 100).toFixed(0)}%)`);
+    } catch (err) {
+      console.log(`[hp-ingest] eval capture failed: ${(err as Error).message}`);
+    }
+  }
+
   console.log(`[hp-ingest] total: ${report.diagnostics.totalDurationMs}ms\n`);
 }
 

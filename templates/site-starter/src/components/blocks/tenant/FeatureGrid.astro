@@ -1,0 +1,102 @@
+---
+interface Props {
+  eyebrow?: string;
+  heading?: string;
+  subheading?: string;
+  items: Array<{ title: string; description: string; iconUrl?: string }>;
+  columns?: 2 | 3 | 4;
+}
+const blok = Astro.props;
+const columns = blok.columns ?? 3;
+---
+<section class="feature-grid section" data-reveal>
+  <div class="container">
+    {(blok.eyebrow || blok.heading || blok.subheading) && (
+      <header class="feature-grid__header">
+        {blok.eyebrow && <span class="feature-grid__eyebrow">{blok.eyebrow}</span>}
+        {blok.heading && <h2 class="feature-grid__heading">{blok.heading}</h2>}
+        {blok.subheading && <p class="feature-grid__sub">{blok.subheading}</p>}
+      </header>
+    )}
+
+    <ul class="feature-grid__list" style={`--cols:${columns}`}>
+      {blok.items.map((item) => (
+        <li class="feature-grid__item">
+          {item.iconUrl && <img class="feature-grid__icon" src={item.iconUrl} alt="" />}
+          <h3 class="feature-grid__title">{item.title}</h3>
+          <p class="feature-grid__desc">{item.description}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .feature-grid__header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    text-align: center;
+    max-width: 720px;
+    margin-inline: auto;
+    margin-bottom: var(--space-12);
+  }
+  .feature-grid__eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+  .feature-grid__heading {
+    font-size: var(--text-4xl);
+    color: var(--color-primary);
+  }
+  .feature-grid__sub {
+    color: var(--color-text-muted);
+    font-size: var(--text-lg);
+  }
+
+  .feature-grid__list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+    gap: var(--space-8);
+  }
+  @media (max-width: 860px) {
+    .feature-grid__list { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .feature-grid__list { grid-template-columns: 1fr; }
+  }
+
+  .feature-grid__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    transition: transform var(--duration-base) var(--easing-out),
+                box-shadow var(--duration-base) var(--easing-out);
+  }
+  .feature-grid__item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  .feature-grid__icon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+  }
+  .feature-grid__title {
+    font-size: var(--text-xl);
+    color: var(--color-primary);
+  }
+  .feature-grid__desc {
+    color: var(--color-text-muted);
+    line-height: var(--leading-normal);
+  }
+</style>
