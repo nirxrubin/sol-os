@@ -13,9 +13,14 @@ out/
 
 # Runtime workspaces (uploaded projects, builds, analysis)
 hp-server/.workspace/
+.workspace/
+.ingest-out/
 
 # Brainstorm sessions
 .superpowers/
+
+# pnpm
+.pnpm-store/
 
 # macOS
 .DS_Store

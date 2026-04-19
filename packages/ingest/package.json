@@ -1,0 +1,25 @@
+{
+  "name": "@hostaposta/ingest",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hostaposta/collections": "workspace:*",
+    "cheerio": "^1.0.0",
+    "unzipper": "^0.12.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/unzipper": "^0.10.11",
+    "typescript": "~5.9.3"
+  }
+}

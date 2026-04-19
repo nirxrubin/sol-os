@@ -1,0 +1,16 @@
+{
+  "name": "hostaposta",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "ingest": "pnpm --filter @hostaposta/ingest-cli start --",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "tsx": "^4.19.0"
+  }
+}
