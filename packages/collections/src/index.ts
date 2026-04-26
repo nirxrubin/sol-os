@@ -5,6 +5,7 @@ export { TestimonialCollection } from "./testimonial.js";
 export { TeamCollection } from "./team.js";
 export { CaseStudyCollection } from "./case-study.js";
 export { ServiceCollection } from "./service.js";
+export { ProductCollection } from "./product.js";
 export { FAQCollection } from "./faq.js";
 export {
   BrandGlobal,
@@ -20,6 +21,7 @@ import { TestimonialCollection } from "./testimonial.js";
 import { TeamCollection } from "./team.js";
 import { CaseStudyCollection } from "./case-study.js";
 import { ServiceCollection } from "./service.js";
+import { ProductCollection } from "./product.js";
 import { FAQCollection } from "./faq.js";
 import {
   BrandGlobal,
@@ -42,6 +44,7 @@ export const ALL_COLLECTIONS: ReadonlyArray<CollectionSchema> = [
   TeamCollection,
   CaseStudyCollection,
   ServiceCollection,
+  ProductCollection,
   FAQCollection,
 ];
 

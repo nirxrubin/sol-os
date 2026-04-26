@@ -24,6 +24,8 @@ export interface PageEdit {
   kind: string;
   label?: string;
   current: string;
+  selector: string;
+  attribute?: string;
   value: string | null;
 }
 

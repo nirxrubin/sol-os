@@ -23,7 +23,7 @@ import { applyEditsAcrossPages, type EditsMap } from "./apply-edits.js";
 import { generatePixelBlocks } from "./pixel-block-generator.js";
 import { copyAssets, applyAssetRemap } from "./assets.js";
 import { emitTenantData } from "./emit-data.js";
-import type { PageDef, BlogPost, Testimonial, TeamMember, Service } from "./types.js";
+import type { PageDef, BlogPost, Testimonial, TeamMember, Service, Product } from "./types.js";
 
 export * from "./types.js";
 export { forkTemplate } from "./fork.js";
@@ -140,7 +140,7 @@ export interface GenerateResult {
   editsCarved?: number;
   /** Fossilize: edits applied from edits.json this run. */
   editsApplied?: number;
-  collectionsCount: Record<"blog" | "testimonial" | "team" | "service", number>;
+  collectionsCount: Record<"blog" | "testimonial" | "team" | "service" | "product", number>;
   assetsCopied: number;
   warnings: string[];
 }
@@ -211,6 +211,12 @@ async function runFossilize(opts: RunInternal): Promise<GenerateResult> {
     tenantDir: opts.tenantDir,
     log: opts.log,
   });
+
+  // Re-copy platform-owned public files that `collectFossilizedHtml` wiped
+  // when it reset the tenant's public/ dir. These are HostaPosta runtime
+  // scaffolding (editor JS, brand-override CSS in the future) — they're
+  // prefixed with `__hp-` by convention so the source can't clash.
+  await copyPlatformPublicFiles(opts.templateDir, opts.tenantDir, opts.log);
 
   // Carve: identify editable nodes (cached in .hostaposta/)
   const hostapostaDir = path.join(opts.tenantDir, ".hostaposta");
@@ -305,6 +311,7 @@ async function runFossilize(opts: RunInternal): Promise<GenerateResult> {
   const testimonial = extract<Testimonial>("testimonial");
   const team = extract<TeamMember>("team");
   const service = extract<Service>("service");
+  const product = extract<Product>("product");
 
   // Emit tenant-data.ts so future editability layers have a starting point.
   // In fossilize mode, pages[] carries the source HTML filenames; blocks is empty.
@@ -327,6 +334,7 @@ async function runFossilize(opts: RunInternal): Promise<GenerateResult> {
       testimonial,
       team,
       service,
+      product,
       siteName: opts.siteName,
       lang: opts.lang,
       dir: opts.dir,
@@ -353,6 +361,7 @@ async function runFossilize(opts: RunInternal): Promise<GenerateResult> {
       testimonial: testimonial.length,
       team: team.length,
       service: service.length,
+      product: product.length,
     },
     assetsCopied: fossilResult.assetsCopied,
     warnings: fossilResult.warnings,
@@ -416,6 +425,7 @@ async function runPixelRewrite(opts: RunInternal): Promise<GenerateResult> {
   const testimonial = extract<Testimonial>("testimonial");
   const team = extract<TeamMember>("team");
   const service = extract<Service>("service");
+  const product = extract<Product>("product");
 
   await fs.writeFile(
     path.join(opts.tenantDir, "src/data/tenant-data.ts"),
@@ -425,6 +435,7 @@ async function runPixelRewrite(opts: RunInternal): Promise<GenerateResult> {
       testimonial,
       team,
       service,
+      product,
       siteName: opts.siteName,
       lang: opts.lang,
       dir: opts.dir,
@@ -449,6 +460,7 @@ async function runPixelRewrite(opts: RunInternal): Promise<GenerateResult> {
       testimonial: testimonial.length,
       team: team.length,
       service: service.length,
+      product: product.length,
     },
     assetsCopied: assetsCopiedCount,
     warnings: pixelResult.warnings,
@@ -464,6 +476,32 @@ async function fileExists(p: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * Copy HostaPosta-owned files from templateDir/public/ into tenantDir/public/.
+ * Prefix convention: anything starting with `__hp-` is ours (never collides
+ * with source assets). Re-runs on every generate so updates to the editor
+ * bundle propagate to existing tenants on next regen.
+ */
+async function copyPlatformPublicFiles(
+  templateDir: string,
+  tenantDir: string,
+  log: (msg: string) => void,
+): Promise<void> {
+  const srcPublic = path.join(templateDir, "public");
+  const destPublic = path.join(tenantDir, "public");
+  if (!(await fileExists(srcPublic))) return;
+
+  const entries = await fs.readdir(srcPublic, { withFileTypes: true });
+  let copied = 0;
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.startsWith("__hp-")) continue;
+    await fs.mkdir(destPublic, { recursive: true });
+    await fs.copyFile(path.join(srcPublic, entry.name), path.join(destPublic, entry.name));
+    copied += 1;
+  }
+  if (copied > 0) log(`restored ${copied} platform file(s) to public/`);
 }
 
 async function ensureFallbackComponent(tenantDir: string): Promise<void> {

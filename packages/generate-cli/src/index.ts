@@ -152,7 +152,7 @@ async function main(): Promise<void> {
   }
   console.log(`  assets:       ${result.assetsCopied} copied`);
   console.log(
-    `  collections:  blog=${result.collectionsCount.blog} testimonial=${result.collectionsCount.testimonial} team=${result.collectionsCount.team} service=${result.collectionsCount.service}`,
+    `  collections:  blog=${result.collectionsCount.blog} testimonial=${result.collectionsCount.testimonial} team=${result.collectionsCount.team} service=${result.collectionsCount.service} product=${result.collectionsCount.product}`,
   );
   console.log(`\nTo preview:`);
   console.log(`  cd ${path.relative(repoRoot, tenantDir)}`);

@@ -63,5 +63,5 @@ export const MOCK_DATA: TenantData = {
       ],
     },
   ],
-  collections: { blog: [], testimonial: [], team: [], service: [] },
+  collections: { blog: [], testimonial: [], team: [], service: [], product: [] },
 };

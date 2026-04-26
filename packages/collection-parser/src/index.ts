@@ -7,15 +7,21 @@
  */
 
 import type { IngestionResult } from "@hostaposta/ingest";
-import type { CollectionExtractionResult, DetectedCollection } from "./types.js";
+import type { CollectionExtractionResult, DetectedCollection, ExtractedEntry } from "./types.js";
 import { detectCollectionTypes } from "./detect.js";
 import { extractEntriesForType } from "./extract.js";
 import { dedupeAndValidate } from "./dedupe.js";
+import {
+  scanDataFilesForCollections,
+  type CollectionKind,
+  type ScannedCollections,
+} from "./scan-data-files.js";
 
 export * from "./types.js";
 export { detectCollectionTypes } from "./detect.js";
 export { extractEntriesForType } from "./extract.js";
 export { dedupeAndValidate } from "./dedupe.js";
+export { scanDataFilesForCollections, classifyArrayShape } from "./scan-data-files.js";
 
 const HIGH_CONFIDENCE_FLOOR = 0.6; // entries below this go to "low" bucket
 
@@ -24,6 +30,9 @@ export interface ParseCollectionsOptions {
   fewShotBlock?: string;
   /** Called if the detector had to retry due to malformed JSON. Used by eval to score quality. */
   onDetectorRetry?: () => void;
+  /** Root dir to scan for static data files (blogPosts / testimonials / etc.
+   *  arrays). Defaults to `ingest.buildPath` when unset. Pass `null` to skip. */
+  scanSourceDir?: string | null;
 }
 
 export async function parseCollections(
@@ -60,24 +69,71 @@ export async function parseCollections(
     };
   }
 
-  // Skill 1: detect
-  const detection = await detectCollectionTypes(ingest, {
-    fewShotBlock: opts.fewShotBlock,
-    onRetry: opts.onDetectorRetry,
-  });
+  // Skill 0: scan static data files (JS/JSON) — runs in parallel with detect.
+  // Many tool-generated sites (Lovable, Bolt, vanilla HTML with a JS CMS) store
+  // their list content here rather than in server-rendered DOM.
+  const scanDir = opts.scanSourceDir === null
+    ? null
+    : (opts.scanSourceDir ?? ingest.buildPath ?? ingest.renderedOutputPath ?? null);
+
+  const [detection, scanned] = await Promise.all([
+    detectCollectionTypes(ingest, {
+      fewShotBlock: opts.fewShotBlock,
+      onRetry: opts.onDetectorRetry,
+    }),
+    scanDir
+      ? scanDataFilesForCollections(scanDir).catch((err): ScannedCollections => {
+          warnings.push(`scan-data-files failed: ${(err as Error).message}`);
+          return { entries: {}, filesScanned: [], filesHit: [], warnings: [] };
+        })
+      : Promise.resolve<ScannedCollections>({ entries: {}, filesScanned: [], filesHit: [], warnings: [] }),
+  ]);
+
+  if (scanned.filesHit.length > 0) {
+    const summary = (Object.keys(scanned.entries) as CollectionKind[])
+      .map((k) => `${k}=${scanned.entries[k]?.length ?? 0}`)
+      .join(", ");
+    warnings.push(`scanned data files (${scanned.filesHit.join(", ")}) → ${summary}`);
+  }
+  warnings.push(...scanned.warnings);
+
+  // If scan found types the LLM didn't detect, synthesize candidates so they
+  // flow through dedupe-and-validate alongside the DOM-extracted entries.
+  const detectedTypes = new Set(detection.candidates.map((c) => c.type));
+  for (const kind of Object.keys(scanned.entries) as CollectionKind[]) {
+    if (detectedTypes.has(kind)) continue;
+    const entries = scanned.entries[kind];
+    if (!entries || entries.length === 0) continue;
+    detection.candidates.push({
+      type: kind,
+      confidence: 0.85,
+      evidence: [`static data file: ${scanned.filesHit[0] ?? "(scanned)"}`],
+    });
+  }
 
   if (detection.candidates.length === 0) {
     return {
       detectedCollections: [],
       unmappedStructured: [],
-      warnings: ["No collection types detected"],
+      warnings: warnings.length ? warnings : ["No collection types detected"],
       metrics: { ...emptyMetrics(), pagesAnalyzed: ingest.pages.length },
     };
   }
 
-  // Skill 2: extract per type, in parallel
+  // Skill 2: extract per type, in parallel. Skip LLM extraction for types
+  // that came purely from the data-file scanner (no DOM to extract from).
+  const scanOnlyTypes = new Set<string>();
+  for (const kind of Object.keys(scanned.entries) as CollectionKind[]) {
+    const fromDetector = detection.candidates.find((c) => c.type === kind);
+    const domEvidence = fromDetector?.evidence.some((e) => !e.startsWith("static data file")) ?? false;
+    if (!domEvidence) scanOnlyTypes.add(kind);
+  }
+
   const extractionResults = await Promise.all(
     detection.candidates.map(async (candidate) => {
+      if (scanOnlyTypes.has(candidate.type)) {
+        return { candidate, entries: [] as ExtractedEntry[], warnings: [] as string[] };
+      }
       try {
         const result = await extractEntriesForType(ingest, candidate, detection);
         return { candidate, ...result };
@@ -88,6 +144,24 @@ export async function parseCollections(
       }
     }),
   );
+
+  // Merge scanner entries into each extraction, de-duping by slug so DOM and
+  // scan don't double-count. DOM wins on conflict (richer provenance).
+  for (const er of extractionResults) {
+    const scanEntries = scanned.entries[er.candidate.type as CollectionKind];
+    if (!scanEntries || scanEntries.length === 0) continue;
+    const existingSlugs = new Set(
+      er.entries
+        .map((e) => (typeof e.data.slug === "string" ? e.data.slug : null))
+        .filter((s): s is string => !!s),
+    );
+    for (const se of scanEntries) {
+      const slug = typeof se.data.slug === "string" ? se.data.slug : null;
+      if (slug && existingSlugs.has(slug)) continue;
+      er.entries.push(se);
+      if (slug) existingSlugs.add(slug);
+    }
+  }
 
   // Skill 3: dedupe + validate per type
   const detectedCollections: DetectedCollection[] = [];

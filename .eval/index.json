@@ -1,5 +1,139 @@
 [
   {
+    "caseId": "2026-04-23_11-41-03-541-casa-do-brasil-main",
+    "capturedAt": "2026-04-23T11:41:03.550Z",
+    "origin": "casa-do-brasil-main.zip",
+    "fingerprint": {
+      "archetype": "vite-react",
+      "generator": "UNKNOWN",
+      "pageBucket": "large",
+      "hasNonLatin": false,
+      "routes": [
+        "/",
+        "/404",
+        "/benefits",
+        "/blog",
+        "/faq",
+        "/gallery",
+        "/menu",
+        "/playlist",
+        "/story",
+        "/vip"
+      ]
+    },
+    "quality": {
+      "score": 0.9700000000000001,
+      "detectorRetried": false,
+      "avgExtractionConfidence": 0.9,
+      "droppedCount": 0,
+      "warningCount": 1
+    },
+    "label": "unlabeled",
+    "promptVersion": "detect-v2+digest-v2"
+  },
+  {
+    "caseId": "2026-04-23_10-38-48-581-casa-do-brasil-main",
+    "capturedAt": "2026-04-23T10:38:48.583Z",
+    "origin": "casa-do-brasil-main.zip",
+    "fingerprint": {
+      "archetype": "vite-react",
+      "generator": "UNKNOWN",
+      "pageBucket": "small",
+      "hasNonLatin": false,
+      "routes": [
+        "/"
+      ]
+    },
+    "quality": {
+      "score": 0.8200000000000001,
+      "detectorRetried": true,
+      "avgExtractionConfidence": 0.9,
+      "droppedCount": 0,
+      "warningCount": 1
+    },
+    "label": "unlabeled",
+    "promptVersion": "detect-v2+digest-v2"
+  },
+  {
+    "caseId": "2026-04-23_09-02-16-716-casa-do-brasil-main",
+    "capturedAt": "2026-04-23T09:02:16.718Z",
+    "origin": "casa-do-brasil-main.zip",
+    "fingerprint": {
+      "archetype": "vite-react",
+      "generator": "UNKNOWN",
+      "pageBucket": "small",
+      "hasNonLatin": false,
+      "routes": [
+        "/"
+      ]
+    },
+    "quality": {
+      "score": 0.8200000000000001,
+      "detectorRetried": true,
+      "avgExtractionConfidence": 0.9,
+      "droppedCount": 0,
+      "warningCount": 1
+    },
+    "label": "unlabeled",
+    "promptVersion": "detect-v2+digest-v2"
+  },
+  {
+    "caseId": "2026-04-20_08-59-24-465-pas00k-main",
+    "capturedAt": "2026-04-20T08:59:24.466Z",
+    "origin": "pas00k-main.zip",
+    "fingerprint": {
+      "archetype": "vite-react",
+      "generator": "LOVABLE",
+      "pageBucket": "medium",
+      "hasNonLatin": false,
+      "routes": [
+        "/",
+        "/about",
+        "/craft",
+        "/journal",
+        "/shop",
+        "/verses"
+      ]
+    },
+    "quality": {
+      "score": 0.7256666666666667,
+      "detectorRetried": true,
+      "avgExtractionConfidence": 0.7522222222222223,
+      "droppedCount": 1,
+      "warningCount": 2
+    },
+    "label": "unlabeled",
+    "promptVersion": "detect-v2+digest-v2"
+  },
+  {
+    "caseId": "2026-04-20_08-35-39-414-pas00k-main",
+    "capturedAt": "2026-04-20T08:35:39.415Z",
+    "origin": "pas00k-main.zip",
+    "fingerprint": {
+      "archetype": "vite-react",
+      "generator": "LOVABLE",
+      "pageBucket": "medium",
+      "hasNonLatin": false,
+      "routes": [
+        "/",
+        "/about",
+        "/craft",
+        "/journal",
+        "/shop",
+        "/verses"
+      ]
+    },
+    "quality": {
+      "score": 0.8963333333333334,
+      "detectorRetried": false,
+      "avgExtractionConfidence": 0.8211111111111112,
+      "droppedCount": 1,
+      "warningCount": 2
+    },
+    "label": "unlabeled",
+    "promptVersion": "detect-v2+digest-v2"
+  },
+  {
     "caseId": "2026-04-19_15-11-08-116-pas00k-main",
     "capturedAt": "2026-04-19T15:11:08.117Z",
     "origin": "pas00k-main.zip",

@@ -54,6 +54,17 @@ export interface Service {
   icon?: string;
   features?: string[];
 }
+export interface Product {
+  name: string;
+  slug: string;
+  price?: string | number;
+  currency?: string;
+  image?: string;
+  description?: string;
+  category?: string;
+  inStock?: boolean;
+  features?: string[];
+}
 
 export interface SiteSettings {
   siteName: string;
@@ -70,6 +81,7 @@ export interface TenantData {
     testimonial?: Testimonial[];
     team?: TeamMember[];
     service?: Service[];
+    product?: Product[];
   };
   lang: string;
   dir: "ltr" | "rtl";

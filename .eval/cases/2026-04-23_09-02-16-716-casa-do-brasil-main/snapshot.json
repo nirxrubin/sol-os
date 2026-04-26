@@ -1,0 +1,79 @@
+{
+  "caseId": "2026-04-23_09-02-16-716-casa-do-brasil-main",
+  "capturedAt": "2026-04-23T09:02:16.718Z",
+  "source": {
+    "kind": "zip",
+    "origin": "casa-do-brasil-main.zip"
+  },
+  "fingerprint": {
+    "archetype": "vite-react",
+    "generator": "UNKNOWN",
+    "pageBucket": "small",
+    "hasNonLatin": false,
+    "routes": [
+      "/"
+    ]
+  },
+  "quality": {
+    "score": 0.8200000000000001,
+    "detectorRetried": true,
+    "avgExtractionConfidence": 0.9,
+    "droppedCount": 0,
+    "warningCount": 1
+  },
+  "detection": {
+    "pages": [
+      {
+        "route": "/",
+        "title": "Casa do Brasil | Brazilian Steakhouse Eilat",
+        "htmlSnippet": " <!-- React root --> <div id=\"root\"><section aria-label=\"Notifications alt+T\" tabindex=\"-1\" aria-live=\"polite\" aria-relevant=\"additions text\" aria-atomic=\"false\"></section><nav dir=\"ltr\" style=\"position: fixed; top: 0px; left: 0px; right: 0px; z-index: 50; padding: 0px 2.8rem; height: 70px; display: flex; align-items: center; justify-content: space-between; transition: background 0.4s, box-shadow 0.4s; background: transparent; backdrop-filter: none; box-shadow: none; animation: 0.7s ease 0.15s 1 normal both running slideDown;\"><div style=\"display: flex; align-items: center; gap: clamp(0.6rem, 1vw, 1.2rem); flex: 1 1 0%; justify-content: flex-start;\"><a href=\"/\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">HOME<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/menu\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">MENU<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/gallery\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">GALLERY<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/faq\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">FAQ<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/vip\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">BENEFITS<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/blog\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spac"
+      }
+    ],
+    "output": {
+      "detectedCollections": [
+        {
+          "type": "testimonial",
+          "confidence": 0.85,
+          "evidence": [
+            "static data file: client/src/components/ReviewsSection.tsx"
+          ],
+          "entries": [
+            {
+              "data": {
+                "slug": "entry",
+                "quote": "An unforgettable dining experience. The Picanha was perfectly grilled, and the atmosphere transported us straight to Brazil. Absolutely worth every shekel.",
+                "name": "Noa S.",
+                "author": "Noa S.",
+                "authorHe": "נועה ש.",
+                "text": "An unforgettable dining experience. The Picanha was perfectly grilled, and the atmosphere transported us straight to Brazil. Absolutely worth every shekel.",
+                "textHe": "חוויית סעודה בלתי נשכחת. הפיקאניה הייתה מושלמת, והאווירה לקחה אותנו ישר לברזיל. שווה כל שקל.",
+                "rating": 5,
+                "date": "January 2025",
+                "dateHe": "ינואר 2025",
+                "googleUrl": "https://maps.google.com/maps?cid=CASA_DO_BRASIL_EILAT"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            }
+          ]
+        }
+      ],
+      "unmappedStructured": [],
+      "warnings": [
+        "scanned data files (client/src/components/ReviewsSection.tsx) → testimonial=20"
+      ],
+      "metrics": {
+        "pagesAnalyzed": 1,
+        "totalEntriesExtracted": 1,
+        "averageConfidence": 0.9,
+        "highConfidenceCount": 1,
+        "lowConfidenceCount": 0
+      }
+    }
+  },
+  "label": "unlabeled",
+  "promptVersion": "detect-v2+digest-v2"
+}

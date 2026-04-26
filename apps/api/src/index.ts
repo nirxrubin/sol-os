@@ -26,6 +26,7 @@ loadEnv({ path: path.join(repoRoot, ".env") });
 
 import express, { type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
+import multer from "multer";
 import { FileTenantStore, InvalidSlugError, assertValidSlug } from "@hostaposta/tenant-store";
 
 const PORT = Number(process.env.HOSTAPOSTA_API_PORT ?? 4000);
@@ -36,6 +37,13 @@ const store = new FileTenantStore({ tenantsDir: TENANTS_DIR });
 const app = express();
 app.use(cors({ origin: true, credentials: false }));
 app.use(express.json({ limit: "2mb" }));
+
+// Multer — in-memory for media uploads so TenantStore owns where it lands.
+// 25MB cap matches reasonable admin-upload sizes (photos, hero backgrounds).
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 25 * 1024 * 1024 },
+});
 
 // ── helpers ──────────────────────────────────────────────────────────────
 
@@ -56,6 +64,35 @@ function slugOf(req: Request): string {
   assertValidSlug(raw, "tenant slug");
   return raw;
 }
+
+// ── root (human-readable info page) ──────────────────────────────────────
+
+app.get("/", (_req, res) => {
+  res
+    .status(200)
+    .type("html")
+    .send(`<!doctype html>
+<html><head><meta charset="utf-8" /><title>HostaPosta API</title>
+<style>
+  body { font: 14px/1.6 system-ui, sans-serif; color: #292524; background: #FAFAF8;
+         max-width: 640px; margin: 4rem auto; padding: 0 2rem; }
+  h1 { font-size: 18px; font-weight: 600; margin-bottom: 1rem; }
+  code { background: #F5F3F0; padding: 2px 6px; border-radius: 4px;
+         font-family: ui-monospace, SF Mono, monospace; font-size: 12px; }
+  ul { padding-left: 1.25rem; }
+  li { margin: 0.25rem 0; }
+  .muted { color: #78716C; }
+</style></head>
+<body>
+  <h1>HostaPosta control-plane API</h1>
+  <p class="muted">This is the backend. You probably want the admin UI.</p>
+  <ul>
+    <li>Admin UI: <a href="http://localhost:5173">http://localhost:5173</a></li>
+    <li>Tenant list: <a href="/api/tenants"><code>GET /api/tenants</code></a></li>
+  </ul>
+  <p class="muted">See <code>apps/api/src/index.ts</code> for all endpoints.</p>
+</body></html>`);
+});
 
 // ── tenants ──────────────────────────────────────────────────────────────
 
@@ -141,6 +178,103 @@ app.post("/api/tenants/:slug/rebuild", asyncHandler(async (req, res) => {
   const result = await store.rebuild(slugOf(req));
   res.status(result.ok ? 200 : 500).json({ result });
 }));
+
+// ── collections ──────────────────────────────────────────────────────────
+
+const COLLECTION_KINDS = new Set(["blog", "testimonial", "team", "service", "product"]);
+const ENTRY_SLUG_RE = /^[A-Za-z0-9_-]{1,120}$/;
+
+app.get("/api/tenants/:slug/collections", asyncHandler(async (req, res) => {
+  const collections = await store.getCollections(slugOf(req));
+  res.json({ collections });
+}));
+
+app.put("/api/tenants/:slug/collections/:kind/:entrySlug", asyncHandler(async (req, res) => {
+  const kind = typeof req.params.kind === "string" ? req.params.kind : "";
+  const entrySlug = typeof req.params.entrySlug === "string" ? req.params.entrySlug : "";
+  if (!COLLECTION_KINDS.has(kind)) {
+    res.status(400).json({ error: `invalid collection kind: ${kind}` });
+    return;
+  }
+  if (!ENTRY_SLUG_RE.test(entrySlug)) {
+    res.status(400).json({ error: `invalid entry slug: ${entrySlug}` });
+    return;
+  }
+  const patch: unknown = req.body;
+  if (!patch || typeof patch !== "object" || Array.isArray(patch)) {
+    res.status(400).json({ error: "body must be a patch object" });
+    return;
+  }
+  const entry = await store.updateCollectionEntry(
+    slugOf(req),
+    kind as "blog" | "testimonial" | "team" | "service" | "product",
+    entrySlug,
+    patch as Record<string, unknown>,
+  );
+  res.json({ entry });
+}));
+
+// ── page meta (SEO / head) ───────────────────────────────────────────────
+
+function readRoute(req: Request): string | null {
+  const route = typeof req.query.route === "string" ? req.query.route : "";
+  if (!route.startsWith("/") || route.length > 200) return null;
+  return route;
+}
+
+app.get("/api/tenants/:slug/meta", asyncHandler(async (req, res) => {
+  const route = readRoute(req);
+  if (!route) {
+    res.status(400).json({ error: "route must start with / and be ≤200 chars" });
+    return;
+  }
+  const meta = await store.getPageMeta(slugOf(req), route);
+  res.json({ meta });
+}));
+
+app.put("/api/tenants/:slug/meta", asyncHandler(async (req, res) => {
+  const route = readRoute(req);
+  if (!route) {
+    res.status(400).json({ error: "route must start with / and be ≤200 chars" });
+    return;
+  }
+  const body = req.body as { meta?: unknown };
+  if (!body || typeof body.meta !== "object" || body.meta === null || Array.isArray(body.meta)) {
+    res.status(400).json({ error: "body.meta must be an object" });
+    return;
+  }
+  await store.setPageMeta(slugOf(req), route, body.meta as Record<string, unknown>);
+  res.json({ ok: true });
+}));
+
+// ── media ────────────────────────────────────────────────────────────────
+
+app.get("/api/tenants/:slug/media", asyncHandler(async (req, res) => {
+  const assets = await store.listMedia(slugOf(req));
+  res.json({ assets });
+}));
+
+app.post(
+  "/api/tenants/:slug/media",
+  upload.single("file"),
+  asyncHandler(async (req, res) => {
+    const file = (req as Request & { file?: Express.Multer.File }).file;
+    if (!file) {
+      res.status(400).json({ error: "no file uploaded (expected multipart field 'file')" });
+      return;
+    }
+    if (!file.originalname) {
+      res.status(400).json({ error: "file has no name" });
+      return;
+    }
+    const result = await store.uploadMedia(slugOf(req), {
+      filename: file.originalname,
+      contentType: file.mimetype || "application/octet-stream",
+      data: file.buffer,
+    });
+    res.json(result);
+  }),
+);
 
 // ── error handler (must be last) ─────────────────────────────────────────
 

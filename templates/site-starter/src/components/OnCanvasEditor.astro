@@ -1,0 +1,30 @@
+---
+/**
+ * On-canvas editor loader — emits two inline script tags:
+ * (1) sets window.__HOSTAPOSTA__ config and (2) loads /__hp-editor.js.
+ *
+ * The editor only ACTIVATES when ?hp-edit=1 (or localStorage hp-edit=true),
+ * so including this on every fossilized page is zero-cost for visitors.
+ *
+ * Props are injected by the generator (fossilize.ts). If they're missing
+ * the editor script short-circuits with a console warning.
+ */
+
+export interface Props {
+  slug: string;
+  apiUrl?: string;
+}
+
+const { slug, apiUrl = "http://localhost:4000" } = Astro.props;
+
+// Build the bootstrap string safely (escape quotes in slug; it's already
+// validated to /^[A-Za-z0-9_-]{1,100}$/ at the generator boundary).
+const bootstrap = `window.__HOSTAPOSTA__ = ${JSON.stringify({ slug, apiUrl })};`;
+
+// Cache-busting version — stamped at build time, so every regenerate or
+// production build ships a fresh URL and the browser never pins an old
+// editor. For dev reloads, the timestamp rotates per request.
+const version = Date.now();
+---
+<script is:inline set:html={bootstrap}></script>
+<script is:inline src={`/__hp-editor.js?v=${version}`} defer></script>

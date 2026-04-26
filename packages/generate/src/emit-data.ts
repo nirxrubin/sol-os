@@ -2,7 +2,7 @@
  * Emit `src/data/tenant-data.ts` in the tenant fork.
  */
 
-import type { PageDef, BlogPost, Testimonial, TeamMember, Service } from "./types.js";
+import type { PageDef, BlogPost, Testimonial, TeamMember, Service, Product } from "./types.js";
 
 export interface EmitDataInput {
   pages: PageDef[];
@@ -10,6 +10,7 @@ export interface EmitDataInput {
   testimonial: Testimonial[];
   team: TeamMember[];
   service: Service[];
+  product: Product[];
   siteName: string;
   lang: string;
   dir: "ltr" | "rtl";
@@ -40,6 +41,7 @@ export const TENANT_DATA: TenantData = `;
         testimonial: input.testimonial,
         team: input.team,
         service: input.service,
+        product: input.product,
       },
     },
     null,

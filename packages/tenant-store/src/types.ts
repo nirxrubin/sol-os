@@ -44,6 +44,10 @@ export interface PageDetail {
     kind: string;
     label?: string;
     current: string;
+    /** CSS selector — the on-canvas editor uses this to locate the DOM node. */
+    selector: string;
+    /** For image/url/link kinds: which attribute the editor should patch. */
+    attribute?: string;
     /** The live value (from edits.json) or null if unedited. */
     value: string | null;
   }>;
@@ -56,6 +60,39 @@ export interface RebuildResult {
   /** Stdout/stderr tail, truncated. */
   log?: string;
   error?: string;
+}
+
+export interface MediaAsset {
+  /** URL served by the tenant (rooted at /). */
+  url: string;
+  /** Filename only. */
+  filename: string;
+  /** Size on disk, bytes. */
+  bytes: number;
+  /** Best-effort kind tag. */
+  kind: "image" | "video" | "font" | "other";
+  /** True if uploaded via admin; false if copied from the source during fossilize. */
+  uploaded: boolean;
+}
+
+export interface UploadMediaInput {
+  filename: string;
+  /** Raw file bytes. */
+  data: Buffer;
+  /** Content type (image/png, image/jpeg, etc.). */
+  contentType: string;
+}
+
+export interface UploadMediaResult {
+  asset: MediaAsset;
+  /** Compression metadata for images. */
+  compression?: {
+    originalBytes: number;
+    outputBytes: number;
+    format: string;
+    width: number;
+    height: number;
+  };
 }
 
 export interface TenantStore {
@@ -76,4 +113,57 @@ export interface TenantStore {
 
   /** Trigger `apply-edits + build` for this tenant. Backend chooses how. */
   rebuild(slug: string): Promise<RebuildResult>;
+
+  /** List all assets available to the tenant (source-originated + uploaded). */
+  listMedia(slug: string): Promise<MediaAsset[]>;
+
+  /** Upload a new asset. Images get compressed to reasonable web delivery sizes. */
+  uploadMedia(slug: string, input: UploadMediaInput): Promise<UploadMediaResult>;
+
+  /** Return the tenant's collections (blog, testimonial, team, service) —
+   *  sourced from src/data/tenant-data.ts with any admin overlay merged in. */
+  getCollections(slug: string): Promise<TenantCollections>;
+
+  /** Patch a single collection entry. Entry is matched by its `slug` field.
+   *  Patch is shallow-merged on top of the base entry via the overlay file
+   *  (.hostaposta/collection-edits.json) — tenant-data.ts is never touched. */
+  updateCollectionEntry(
+    slug: string,
+    kind: CollectionKind,
+    entrySlug: string,
+    patch: Record<string, unknown>,
+  ): Promise<Record<string, unknown>>;
+
+  /** Per-page SEO / head metadata overrides. Stored in .hostaposta/meta.json. */
+  getPageMeta(slug: string, route: string): Promise<PageMeta>;
+  setPageMeta(slug: string, route: string, meta: PageMeta): Promise<void>;
+}
+
+export interface TenantCollections {
+  blog: Array<Record<string, unknown>>;
+  testimonial: Array<Record<string, unknown>>;
+  team: Array<Record<string, unknown>>;
+  service: Array<Record<string, unknown>>;
+  product: Array<Record<string, unknown>>;
+}
+
+export type CollectionKind = "blog" | "testimonial" | "team" | "service" | "product";
+
+/**
+ * Per-page SEO / head-injection metadata. Stored separately from the
+ * carved editable fields because these target the document head, not
+ * body content — they don't have a DOM selector on the page.
+ *
+ * All fields optional — any missing field falls back to the fossilized
+ * source <head>. Applied by apply-edits when present.
+ */
+export interface PageMeta {
+  /** <title> text. */
+  title?: string;
+  /** <meta name="description"> content. */
+  description?: string;
+  /** Open Graph image URL (absolute or /rooted). */
+  ogImage?: string;
+  /** Full JSON-LD object for <script type="application/ld+json">. */
+  schema?: unknown;
 }

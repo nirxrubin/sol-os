@@ -18,25 +18,34 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { ArchetypeId } from "./types.js";
 
+// Covers both single-package layouts (src/*) and fullstack monorepo layouts
+// that nest the frontend under client/ or web/ (vite + express pattern).
+const ROUTER_FILE_STEMS = [
+  "App.tsx",
+  "App.jsx",
+  "App.vue",
+  "main.tsx",
+  "main.jsx",
+  "main.ts",
+  "main.js",
+  "router.tsx",
+  "router.ts",
+  "router/index.ts",
+  "router/index.tsx",
+  "routes.tsx",
+  "routes.ts",
+];
+const APP_ROOTS = ["", "client/", "web/", "frontend/", "apps/web/"];
 const ROUTER_FILE_CANDIDATES = [
-  "src/App.tsx",
-  "src/App.jsx",
-  "src/App.vue",
-  "src/main.tsx",
-  "src/main.jsx",
-  "src/main.ts",
-  "src/main.js",
-  "src/router.tsx",
-  "src/router.ts",
-  "src/router/index.ts",
-  "src/router/index.tsx",
-  "src/routes.tsx",
-  "src/routes.ts",
+  ...APP_ROOTS.flatMap((r) => ROUTER_FILE_STEMS.map((s) => `${r}src/${s}`)),
   "App.tsx",
   "App.jsx",
 ];
 
-const PAGES_DIR_CANDIDATES = ["src/pages", "src/routes", "pages"];
+const PAGES_DIR_CANDIDATES = [
+  ...APP_ROOTS.flatMap((r) => [`${r}src/pages`, `${r}src/routes`]),
+  "pages",
+];
 
 export function isSpaArchetype(archetype: ArchetypeId): boolean {
   return archetype === "vite-react" || archetype === "vite-vue" || archetype === "cra";
@@ -89,8 +98,9 @@ async function scanRouterConfig(projectRoot: string, scannedFiles: string[]): Pr
       continue;
     }
 
-    // React Router v6: <Route path="/..." ...>
-    const reactRouteRe = /<Route[^>]*\bpath\s*=\s*["'`]([^"'`]+)["'`]/g;
+    // React Router v6 / wouter: <Route path="/..." /> or <Route path={"/..."} />
+    // wouter idiomatically wraps the path literal in a JSX expression container.
+    const reactRouteRe = /<Route[^>]*\bpath\s*=\s*\{?\s*["'`]([^"'`]+)["'`]\s*\}?/g;
     let m: RegExpExecArray | null;
     while ((m = reactRouteRe.exec(content)) !== null) {
       routes.add(m[1]!);

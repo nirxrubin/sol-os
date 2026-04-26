@@ -1,0 +1,545 @@
+{
+  "caseId": "2026-04-23_11-41-03-541-casa-do-brasil-main",
+  "capturedAt": "2026-04-23T11:41:03.550Z",
+  "source": {
+    "kind": "zip",
+    "origin": "casa-do-brasil-main.zip"
+  },
+  "fingerprint": {
+    "archetype": "vite-react",
+    "generator": "UNKNOWN",
+    "pageBucket": "large",
+    "hasNonLatin": false,
+    "routes": [
+      "/",
+      "/404",
+      "/benefits",
+      "/blog",
+      "/faq",
+      "/gallery",
+      "/menu",
+      "/playlist",
+      "/story",
+      "/vip"
+    ]
+  },
+  "quality": {
+    "score": 0.9700000000000001,
+    "detectorRetried": false,
+    "avgExtractionConfidence": 0.9,
+    "droppedCount": 0,
+    "warningCount": 1
+  },
+  "detection": {
+    "pages": [
+      {
+        "route": "/404",
+        "title": "קאסה דו ברזיל — מסעדת בשרים ברזילאית באילת | Casa do Brasil",
+        "htmlSnippet": " <!-- React root --> <div id=\"root\"><section aria-label=\"Notifications alt+T\" tabindex=\"-1\" aria-live=\"polite\" aria-relevant=\"additions text\" aria-atomic=\"false\"></section><div class=\"min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100\"><div data-slot=\"card\" class=\"text-card-foreground flex flex-col gap-6 rounded-xl py-6 w-full max-w-lg mx-4 shadow-lg border-0 bg-white/80 backdrop-blur-sm\"><div data-slot=\"card-content\" class=\"px-6 pt-8 pb-8 text-center\"><div class=\"flex justify-center mb-6\"><div class=\"relative\"><div class=\"absolute inset-0 bg-red-100 rounded-full animate-pulse\"></div><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-alert relative h-16 w-16 text-red-500\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\"></line><line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\"></line></svg></div></div><h1 class=\"text-4xl font-bold text-slate-900 mb-2\">404</h1><h2 class=\"text-xl font-semibold text-slate-700 mb-4\">Page Not Found</h2><p class=\"text-slate-600 mb-8 leading-relaxed\">Sorry, the page you are looking for doesn't exist.<br>It may have been moved or deleted.</p><div id=\"not-found-button-group\" class=\"flex flex-col sm:flex-row gap-3 justify-center\"><button data-slot=\"button\" class=\"inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-9 has-[>svg]:px-3 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-house w-4 h-4 mr-2\"><path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"></path><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"></path></svg>Go Home</button></div></div></div></div><a href=\"https://tabitisrael.co.il/online-reservations/create-reservation?step=search&amp;orgId=619bae58c6a7c716a41bdc73\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"Make a Reservation\" style=\"position: fixed; bottom: 2rem; right: 1.5rem; left: auto; z-index: 999; display: flex; align-items: center; gap: 0.55rem; padding: 0.55rem 1.1rem 0.55rem 0.65rem; border-radius: 10px; background: rgb(254, 223, 0); border: 2.5px solid rgb(0, 156, 59); text-decoration: none; cursor: pointer; box-shadow: rgba(254, 223, 0, 0.45) 0px 4px 24px, rgb"
+      },
+      {
+        "route": "/benefits",
+        "title": "Benefits | Casa do Brasil — VIP Club",
+        "htmlSnippet": " <!-- React root --> <div id=\"root\"><section aria-label=\"Notifications alt+T\" tabindex=\"-1\" aria-live=\"polite\" aria-relevant=\"additions text\" aria-atomic=\"false\"></section><div style=\"min-height: 100vh; background: rgb(255, 255, 255);\"><nav dir=\"ltr\" style=\"position: fixed; top: 0px; left: 0px; right: 0px; z-index: 50; padding: 0px 2.8rem; height: 70px; display: flex; align-items: center; justify-content: space-between; transition: background 0.4s, box-shadow 0.4s; background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(16px); box-shadow: rgba(185, 161, 103, 0.25) 0px 1px 0px, rgba(62, 4, 9, 0.08) 0px 4px 24px; animation: 0.7s ease 0.15s 1 normal both running slideDown;\"><div style=\"display: flex; align-items: center; gap: clamp(0.6rem, 1vw, 1.2rem); flex: 1 1 0%; justify-content: flex-start;\"><a href=\"/\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(62, 4, 9); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">HOME<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/menu\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(62, 4, 9); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">MENU<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/gallery\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(62, 4, 9); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">GALLERY<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/faq\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(62, 4, 9); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">FAQ<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/vip\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(62, 4, 9); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">BENEFITS<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; displ"
+      },
+      {
+        "route": "/blog",
+        "title": "Blog | Casa do Brasil — Brazilian Grill Eilat",
+        "htmlSnippet": " <!-- React root --> <div id=\"root\"><section aria-label=\"Notifications alt+T\" tabindex=\"-1\" aria-live=\"polite\" aria-relevant=\"additions text\" aria-atomic=\"false\"></section><div style=\"min-height: 100vh; background: rgb(255, 255, 255);\"><nav dir=\"ltr\" style=\"position: fixed; top: 0px; left: 0px; right: 0px; z-index: 50; padding: 0px 2.8rem; height: 70px; display: flex; align-items: center; justify-content: space-between; transition: background 0.4s, box-shadow 0.4s; background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(16px); box-shadow: rgba(185, 161, 103, 0.25) 0px 1px 0px, rgba(62, 4, 9, 0.08) 0px 4px 24px; animation: 0.7s ease 0.15s 1 normal both running slideDown;\"><div style=\"display: flex; align-items: center; gap: clamp(0.6rem, 1vw, 1.2rem); flex: 1 1 0%; justify-content: flex-start;\"><a href=\"/\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(62, 4, 9); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">HOME<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/menu\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(62, 4, 9); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">MENU<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/gallery\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(62, 4, 9); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">GALLERY<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/faq\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(62, 4, 9); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">FAQ<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/vip\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(62, 4, 9); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">BENEFITS<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; displ"
+      },
+      {
+        "route": "/faq",
+        "title": "FAQ | Casa do Brasil — Brazilian Steakhouse Eilat",
+        "htmlSnippet": " <!-- React root --> <div id=\"root\"><section aria-label=\"Notifications alt+T\" tabindex=\"-1\" aria-live=\"polite\" aria-relevant=\"additions text\" aria-atomic=\"false\"></section><div style=\"min-height: 100vh; background: rgb(255, 255, 255);\"><nav dir=\"ltr\" style=\"position: fixed; top: 0px; left: 0px; right: 0px; z-index: 50; padding: 0px 2.8rem; height: 70px; display: flex; align-items: center; justify-content: space-between; transition: background 0.4s, box-shadow 0.4s; background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(16px); box-shadow: rgba(185, 161, 103, 0.25) 0px 1px 0px, rgba(62, 4, 9, 0.08) 0px 4px 24px; animation: 0.7s ease 0.15s 1 normal both running slideDown;\"><div style=\"display: flex; align-items: center; gap: clamp(0.6rem, 1vw, 1.2rem); flex: 1 1 0%; justify-content: flex-start;\"><a href=\"/\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(62, 4, 9); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">HOME<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/menu\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(62, 4, 9); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">MENU<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/gallery\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(62, 4, 9); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">GALLERY<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/faq\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(62, 4, 9); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">FAQ<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/vip\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(62, 4, 9); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">BENEFITS<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; displ"
+      },
+      {
+        "route": "/gallery",
+        "title": "קאסה דו ברזיל — מסעדת בשרים ברזילאית באילת | Casa do Brasil",
+        "htmlSnippet": " <!-- React root --> <div id=\"root\"><section aria-label=\"Notifications alt+T\" tabindex=\"-1\" aria-live=\"polite\" aria-relevant=\"additions text\" aria-atomic=\"false\"></section><div style=\"min-height: 100vh; background: rgb(255, 255, 255);\"><nav dir=\"ltr\" style=\"position: fixed; top: 0px; left: 0px; right: 0px; z-index: 50; padding: 0px 2.8rem; height: 70px; display: flex; align-items: center; justify-content: space-between; transition: background 0.4s, box-shadow 0.4s; background: transparent; backdrop-filter: none; box-shadow: none; animation: 0.7s ease 0.15s 1 normal both running slideDown;\"><div style=\"display: flex; align-items: center; gap: clamp(0.6rem, 1vw, 1.2rem); flex: 1 1 0%; justify-content: flex-start;\"><a href=\"/\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">HOME<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/menu\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">MENU<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/gallery\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">GALLERY<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/faq\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">FAQ<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/vip\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">BENEFITS<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/blog\" style=\"font-family: Heeb"
+      },
+      {
+        "route": "/",
+        "title": "Casa do Brasil | Brazilian Steakhouse Eilat",
+        "htmlSnippet": " <!-- React root --> <div id=\"root\"><section aria-label=\"Notifications alt+T\" tabindex=\"-1\" aria-live=\"polite\" aria-relevant=\"additions text\" aria-atomic=\"false\"></section><nav dir=\"ltr\" style=\"position: fixed; top: 0px; left: 0px; right: 0px; z-index: 50; padding: 0px 2.8rem; height: 70px; display: flex; align-items: center; justify-content: space-between; transition: background 0.4s, box-shadow 0.4s; background: transparent; backdrop-filter: none; box-shadow: none; animation: 0.7s ease 0.15s 1 normal both running slideDown;\"><div style=\"display: flex; align-items: center; gap: clamp(0.6rem, 1vw, 1.2rem); flex: 1 1 0%; justify-content: flex-start;\"><a href=\"/\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">HOME<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/menu\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">MENU<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/gallery\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">GALLERY<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/faq\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">FAQ<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/vip\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">BENEFITS<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/blog\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spac"
+      },
+      {
+        "route": "/menu",
+        "title": "Menu | Casa do Brasil — Brazilian Steakhouse Eilat",
+        "htmlSnippet": " <!-- React root --> <div id=\"root\"><section aria-label=\"Notifications alt+T\" tabindex=\"-1\" aria-live=\"polite\" aria-relevant=\"additions text\" aria-atomic=\"false\"></section><div dir=\"ltr\" style=\"min-height: 100vh; background: rgb(255, 255, 255);\"><nav dir=\"ltr\" style=\"position: fixed; top: 0px; left: 0px; right: 0px; z-index: 50; padding: 0px 2.8rem; height: 70px; display: flex; align-items: center; justify-content: space-between; transition: background 0.4s, box-shadow 0.4s; background: transparent; backdrop-filter: none; box-shadow: none; animation: 0.7s ease 0.15s 1 normal both running slideDown;\"><div style=\"display: flex; align-items: center; gap: clamp(0.6rem, 1vw, 1.2rem); flex: 1 1 0%; justify-content: flex-start;\"><a href=\"/\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">HOME<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/menu\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">MENU<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/gallery\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">GALLERY<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/faq\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">FAQ<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/vip\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">BENEFITS<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/blog\" style=\"font-fa"
+      },
+      {
+        "route": "/playlist",
+        "title": "קאסה דו ברזיל — מסעדת בשרים ברזילאית באילת | Casa do Brasil",
+        "htmlSnippet": " <!-- React root --> <div id=\"root\"><section aria-label=\"Notifications alt+T\" tabindex=\"-1\" aria-live=\"polite\" aria-relevant=\"additions text\" aria-atomic=\"false\"></section><div style=\"min-height: 100vh; background: rgb(30, 2, 5);\"><nav dir=\"ltr\" style=\"position: fixed; top: 0px; left: 0px; right: 0px; z-index: 50; padding: 0px 2.8rem; height: 70px; display: flex; align-items: center; justify-content: space-between; transition: background 0.4s, box-shadow 0.4s; background: transparent; backdrop-filter: none; box-shadow: none; animation: 0.7s ease 0.15s 1 normal both running slideDown;\"><div style=\"display: flex; align-items: center; gap: clamp(0.6rem, 1vw, 1.2rem); flex: 1 1 0%; justify-content: flex-start;\"><a href=\"/\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">HOME<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/menu\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">MENU<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/gallery\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">GALLERY<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/faq\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">FAQ<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/vip\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">BENEFITS<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/blog\" style=\"font-family: Heebo, sa"
+      },
+      {
+        "route": "/story",
+        "title": "Casa do Brasil | Brazilian Steakhouse Eilat",
+        "htmlSnippet": " <!-- React root --> <div id=\"root\"><section aria-label=\"Notifications alt+T\" tabindex=\"-1\" aria-live=\"polite\" aria-relevant=\"additions text\" aria-atomic=\"false\"></section><nav dir=\"ltr\" style=\"position: fixed; top: 0px; left: 0px; right: 0px; z-index: 50; padding: 0px 2.8rem; height: 70px; display: flex; align-items: center; justify-content: space-between; transition: background 0.4s, box-shadow 0.4s; background: transparent; backdrop-filter: none; box-shadow: none; animation: 0.7s ease 0.15s 1 normal both running slideDown;\"><div style=\"display: flex; align-items: center; gap: clamp(0.6rem, 1vw, 1.2rem); flex: 1 1 0%; justify-content: flex-start;\"><a href=\"/\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">HOME<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/menu\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">MENU<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/gallery\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">GALLERY<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/faq\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">FAQ<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/vip\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">BENEFITS<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/blog\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spac"
+      },
+      {
+        "route": "/vip",
+        "title": "VIP | Casa do Brasil",
+        "htmlSnippet": " <!-- React root --> <div id=\"root\"><section aria-label=\"Notifications alt+T\" tabindex=\"-1\" aria-live=\"polite\" aria-relevant=\"additions text\" aria-atomic=\"false\"></section><div dir=\"ltr\" style=\"min-height: 100vh; background: rgb(22, 1, 3);\"><nav dir=\"ltr\" style=\"position: fixed; top: 0px; left: 0px; right: 0px; z-index: 50; padding: 0px 2.8rem; height: 70px; display: flex; align-items: center; justify-content: space-between; transition: background 0.4s, box-shadow 0.4s; background: transparent; backdrop-filter: none; box-shadow: none; animation: 0.7s ease 0.15s 1 normal both running slideDown;\"><div style=\"display: flex; align-items: center; gap: clamp(0.6rem, 1vw, 1.2rem); flex: 1 1 0%; justify-content: flex-start;\"><a href=\"/\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">HOME<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/menu\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">MENU<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/gallery\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">GALLERY<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/faq\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">FAQ<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/vip\" style=\"font-family: Heebo, sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; color: rgb(255, 255, 255); transition: color 0.25s; position: relative; padding-bottom: 2px; white-space: nowrap;\">BENEFITS<span style=\"position: absolute; bottom: 0px; left: 0px; width: 0%; height: 1px; background: rgb(0, 156, 59); transition: width 0.3s; display: block;\"></span></a><a href=\"/blog\" style=\"font-family:"
+      }
+    ],
+    "output": {
+      "detectedCollections": [
+        {
+          "type": "blog",
+          "confidence": 0.95,
+          "evidence": [
+            "dedicated /blog index route with grid of article cards",
+            "3+ visible articles (Picanha — The Crown Cut of Brasil, What is Churrascaria?, Caipirinha Recipe) each with date, category tag, thumbnail image, excerpt",
+            "each card links to /blog/:slug detail pages (e.g. /blog/picanha-the-crown-cut, /blog/churrascaria-experience, /blog/caipirinha-recipe)"
+          ],
+          "entries": [],
+          "indexPages": [
+            {
+              "route": "/blog"
+            }
+          ],
+          "detailPages": [
+            {
+              "pattern": "/blog/:slug",
+              "exampleRoute": "/blog/:slug"
+            }
+          ]
+        },
+        {
+          "type": "faq",
+          "confidence": 0.9,
+          "evidence": [
+            "dedicated /faq route with accordion-style Q&A pairs",
+            "4+ visible Q&A items: 'Do I need a reservation?', 'What are your opening hours?', 'Is the restaurant kosher?', 'Do you have a menu for children?'",
+            "each item uses consistent button[aria-expanded] + collapsible answer pattern"
+          ],
+          "entries": [],
+          "indexPages": [
+            {
+              "route": "/faq"
+            }
+          ]
+        },
+        {
+          "type": "product",
+          "confidence": 0.72,
+          "evidence": [
+            "dedicated /menu route with tabbed category navigation: Churrascaria, Specials, Under 12, Desserts, Lunch Set, Fresh Meat By Weight",
+            "structured menu items with names, descriptions, and likely prices within each tab",
+            "category field maps naturally to the tab taxonomy; no individual detail pages detected"
+          ],
+          "entries": [],
+          "indexPages": [
+            {
+              "route": "/menu"
+            }
+          ]
+        },
+        {
+          "type": "testimonial",
+          "confidence": 0.85,
+          "evidence": [
+            "static data file: client/src/components/ReviewsSection.tsx"
+          ],
+          "entries": [
+            {
+              "data": {
+                "quote": "An unforgettable dining experience. The Picanha was perfectly grilled, and the atmosphere transported us straight to Brazil. Absolutely worth every shekel.",
+                "name": "Noa S.",
+                "author": "Noa S.",
+                "authorHe": "נועה ש.",
+                "text": "An unforgettable dining experience. The Picanha was perfectly grilled, and the atmosphere transported us straight to Brazil. Absolutely worth every shekel.",
+                "textHe": "חוויית סעודה בלתי נשכחת. הפיקאניה הייתה מושלמת, והאווירה לקחה אותנו ישר לברזיל. שווה כל שקל.",
+                "rating": 5,
+                "date": "January 2025",
+                "dateHe": "ינואר 2025",
+                "googleUrl": "https://maps.google.com/maps?cid=CASA_DO_BRASIL_EILAT",
+                "slug": "noa-s-an-unforgettable-dining-experience-the"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "The rodizio is a true feast — endless cuts, each one better than the last. The staff were warm and attentive. Casa do Brasil is a must in Eilat.",
+                "name": "Daniel K.",
+                "author": "Daniel K.",
+                "authorHe": "דניאל ק.",
+                "text": "The rodizio is a true feast — endless cuts, each one better than the last. The staff were warm and attentive. Casa do Brasil is a must in Eilat.",
+                "textHe": "הרודיציו הוא חגיגה אמיתית — נתחים אינסופיים, כל אחד טוב מהקודם. הצוות חם ומקצועי. חובה בביקור באילת.",
+                "rating": 5,
+                "date": "December 2024",
+                "dateHe": "דצמבר 2024",
+                "slug": "daniel-k-the-rodizio-is-a-true-feast-endless-cu"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "We celebrated our anniversary here and it was magical. The Rossini Filet melted in our mouths. The wine pairing was spot on. Will be back for every occasion.",
+                "name": "Maya R.",
+                "author": "Maya R.",
+                "authorHe": "מאיה ר.",
+                "text": "We celebrated our anniversary here and it was magical. The Rossini Filet melted in our mouths. The wine pairing was spot on. Will be back for every occasion.",
+                "textHe": "חגגנו כאן את יום הנישואין שלנו וזה היה קסום. פילה הרוסיני נמס בפה. ההמלצות על היין היו מדויקות. נחזור לכל אירוע.",
+                "rating": 5,
+                "date": "February 2025",
+                "dateHe": "פברואר 2025",
+                "slug": "maya-r-we-celebrated-our-anniversary-here-and-i"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "Best meat restaurant in Eilat, no contest. The Tornado dish is a masterpiece — entrecote, fillet and foie gras in one plate. Stunning.",
+                "name": "Avi L.",
+                "author": "Avi L.",
+                "authorHe": "אבי ל.",
+                "text": "Best meat restaurant in Eilat, no contest. The Tornado dish is a masterpiece — entrecote, fillet and foie gras in one plate. Stunning.",
+                "textHe": "המסעדה הטובה ביותר לבשר באילת, ללא תחרות. מנת הטורנדו היא יצירת מופת — אנטריקוט, פילה וכבד אווז בצלחת אחת. מדהים.",
+                "rating": 5,
+                "date": "March 2025",
+                "dateHe": "מרץ 2025",
+                "slug": "avi-l-best-meat-restaurant-in-eilat-no-contes"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "The ambiance is incredible — warm, vibrant, with live music that made the evening feel like a real Brazilian carnival. The food matched the energy perfectly.",
+                "name": "Sarah M.",
+                "author": "Sarah M.",
+                "authorHe": "שרה מ.",
+                "text": "The ambiance is incredible — warm, vibrant, with live music that made the evening feel like a real Brazilian carnival. The food matched the energy perfectly.",
+                "textHe": "האווירה מדהימה — חמה, תוססת, עם מוזיקה חיה שהפכה את הערב לקרנבל ברזילאי אמיתי. האוכל התאים לאנרגיה בצורה מושלמת.",
+                "rating": 5,
+                "date": "January 2025",
+                "dateHe": "ינואר 2025",
+                "slug": "sarah-m-the-ambiance-is-incredible-warm-vibra"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "The Pavê dessert alone is worth the trip. Creamy, authentic, and beautifully presented. The service was impeccable from start to finish.",
+                "name": "Tom B.",
+                "author": "Tom B.",
+                "authorHe": "תום ב.",
+                "text": "The Pavê dessert alone is worth the trip. Creamy, authentic, and beautifully presented. The service was impeccable from start to finish.",
+                "textHe": "הפאבה לבדה שווה את הנסיעה. קרמי, אותנטי ומוגש בצורה יפהפייה. השירות היה ללא דופי מתחילה ועד סוף.",
+                "rating": 5,
+                "date": "November 2024",
+                "dateHe": "נובמבר 2024",
+                "slug": "tom-b-the-pave-dessert-alone-is-worth-the-trip"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "Came for the lunch deal and stayed for the atmosphere. Incredible value — generous starters, a perfect Picanha, and the warmest hospitality in Eilat.",
+                "name": "Lior G.",
+                "author": "Lior G.",
+                "authorHe": "ליאור ג.",
+                "text": "Came for the lunch deal and stayed for the atmosphere. Incredible value — generous starters, a perfect Picanha, and the warmest hospitality in Eilat.",
+                "textHe": "הגענו למבצע הצהריים ונשארנו בגלל האווירה. ערך מדהים — מנות פתיחה נדיבות, פיקאניה מושלמת, ואירוח הכי חם באילת.",
+                "rating": 5,
+                "date": "February 2025",
+                "dateHe": "פברואר 2025",
+                "slug": "lior-g-came-for-the-lunch-deal-and-stayed-for-t"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "The Aged Lamb Chops were extraordinary — tender, smoky, and seasoned to perfection. A restaurant that truly understands the art of grilling.",
+                "name": "Rachel H.",
+                "author": "Rachel H.",
+                "authorHe": "רחל ה.",
+                "text": "The Aged Lamb Chops were extraordinary — tender, smoky, and seasoned to perfection. A restaurant that truly understands the art of grilling.",
+                "textHe": "צלעות הכבש המיושנות היו יוצאות דופן — רכות, מעושנות ומתובלות לשלמות. מסעדה שמבינה באמת את אמנות הגריל.",
+                "rating": 5,
+                "date": "December 2024",
+                "dateHe": "דצמבר 2024",
+                "slug": "rachel-h-the-aged-lamb-chops-were-extraordinary"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "We brought a group of 12 for a birthday dinner. The staff handled everything flawlessly. The meat parade never stopped — everyone left absolutely satisfied.",
+                "name": "Yossi P.",
+                "author": "Yossi P.",
+                "authorHe": "יוסי פ.",
+                "text": "We brought a group of 12 for a birthday dinner. The staff handled everything flawlessly. The meat parade never stopped — everyone left absolutely satisfied.",
+                "textHe": "הבאנו קבוצה של 12 לארוחת יום הולדת. הצוות טיפל בהכל ללא רבב. מצעד הבשר לא פסק — כולם יצאו מרוצים לחלוטין.",
+                "rating": 5,
+                "date": "October 2024",
+                "dateHe": "אוקטובר 2024",
+                "slug": "yossi-p-we-brought-a-group-of-12-for-a-birthday"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "The Seared Goose Liver on brioche is one of the best things I've ever eaten. Rich, delicate, and perfectly balanced with the cherry tomato jam.",
+                "name": "Michal T.",
+                "author": "Michal T.",
+                "authorHe": "מיכל ת.",
+                "text": "The Seared Goose Liver on brioche is one of the best things I've ever eaten. Rich, delicate, and perfectly balanced with the cherry tomato jam.",
+                "textHe": "כבד האווז הצרוב על הבריוש הוא אחד הדברים הטובים ביותר שאכלתי. עשיר, עדין ומאוזן בצורה מושלמת עם ריבת עגבניות השרי.",
+                "rating": 5,
+                "date": "January 2025",
+                "dateHe": "ינואר 2025",
+                "slug": "michal-t-the-seared-goose-liver-on-brioche-is-one"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "Visited twice this year and both times were exceptional. The consistency is remarkable — same quality, same warmth, same incredible cuts every single time.",
+                "name": "Eitan F.",
+                "author": "Eitan F.",
+                "authorHe": "איתן פ.",
+                "text": "Visited twice this year and both times were exceptional. The consistency is remarkable — same quality, same warmth, same incredible cuts every single time.",
+                "textHe": "ביקרתי פעמיים השנה ושתי הפעמים היו יוצאות דופן. העקביות מרשימה — אותה איכות, אותה חמימות, אותם נתחים מדהימים בכל פעם.",
+                "rating": 5,
+                "date": "March 2025",
+                "dateHe": "מרץ 2025",
+                "slug": "eitan-f-visited-twice-this-year-and-both-times-w"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "The Chimichurri sauce is addictive — I could eat it with everything. The whole meal was a journey through Brazilian flavors. Truly a special place.",
+                "name": "Hila N.",
+                "author": "Hila N.",
+                "authorHe": "הילה נ.",
+                "text": "The Chimichurri sauce is addictive — I could eat it with everything. The whole meal was a journey through Brazilian flavors. Truly a special place.",
+                "textHe": "רוטב הצ'ימיצ'ורי ממכר — הייתי יכולה לאכול אותו עם הכל. כל הארוחה הייתה מסע בטעמים ברזילאיים. מקום מיוחד באמת.",
+                "rating": 5,
+                "date": "February 2025",
+                "dateHe": "פברואר 2025",
+                "slug": "hila-n-the-chimichurri-sauce-is-addictive-i-c"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "The 289 rodizio track is absolutely worth it. 12 kinds of meat, all perfectly executed. The chicken hearts were surprisingly the highlight of the evening.",
+                "name": "Ran A.",
+                "author": "Ran A.",
+                "authorHe": "רן א.",
+                "text": "The 289 rodizio track is absolutely worth it. 12 kinds of meat, all perfectly executed. The chicken hearts were surprisingly the highlight of the evening.",
+                "textHe": "מסלול הרודיציו ב-289 שווה כל שקל. 12 סוגי בשר, כולם מבוצעים בצורה מושלמת. לבבות העוף היו באופן מפתיע השיא של הערב.",
+                "rating": 5,
+                "date": "November 2024",
+                "dateHe": "נובמבר 2024",
+                "slug": "ran-a-the-289-rodizio-track-is-absolutely-wort"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "As someone who travels to Brazil regularly, I can say Casa do Brasil captures the authentic churrascaria spirit better than most places I've been to.",
+                "name": "Dina W.",
+                "author": "Dina W.",
+                "authorHe": "דינה ו.",
+                "text": "As someone who travels to Brazil regularly, I can say Casa do Brasil captures the authentic churrascaria spirit better than most places I've been to.",
+                "textHe": "כמי שנוסעת לברזיל באופן קבוע, אני יכולה לומר שקאסה דו ברזיל לוכדת את רוח הצ'ורוסקריה האותנטית טוב מרוב המקומות שביקרתי בהם.",
+                "rating": 5,
+                "date": "January 2025",
+                "dateHe": "ינואר 2025",
+                "slug": "dina-w-as-someone-who-travels-to-brazil-regular"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "The Crème Brûlée was the perfect ending to a perfect meal. Crispy caramel top, silky vanilla cream underneath. Compliments to the entire kitchen team.",
+                "name": "Kobi S.",
+                "author": "Kobi S.",
+                "authorHe": "קובי ס.",
+                "text": "The Crème Brûlée was the perfect ending to a perfect meal. Crispy caramel top, silky vanilla cream underneath. Compliments to the entire kitchen team.",
+                "textHe": "הקרם ברולה היה הסיום המושלם לארוחה מושלמת. קרמל פריך מעל, קרם וניל משיי מתחת. מחמאות לכל צוות המטבח.",
+                "rating": 5,
+                "date": "December 2024",
+                "dateHe": "דצמבר 2024",
+                "slug": "kobi-s-the-creme-brulee-was-the-perfect-ending"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "Romantic, elegant, and delicious. The lighting, the music, the food — everything was perfectly curated for a special evening. Highly recommend for date night.",
+                "name": "Orly B.",
+                "author": "Orly B.",
+                "authorHe": "אורלי ב.",
+                "text": "Romantic, elegant, and delicious. The lighting, the music, the food — everything was perfectly curated for a special evening. Highly recommend for date night.",
+                "textHe": "רומנטי, אלגנטי וטעים. התאורה, המוזיקה, האוכל — הכל היה מאורגן בצורה מושלמת לערב מיוחד. ממליצה בחום לדייט.",
+                "rating": 5,
+                "date": "February 2025",
+                "dateHe": "פברואר 2025",
+                "slug": "orly-b-romantic-elegant-and-delicious-the-li"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "The Boliniho are incredible — crispy outside, juicy inside. We ordered extra portions just because we couldn't stop. A true taste of Brazil in Eilat.",
+                "name": "Gal M.",
+                "author": "Gal M.",
+                "authorHe": "גל מ.",
+                "text": "The Boliniho are incredible — crispy outside, juicy inside. We ordered extra portions just because we couldn't stop. A true taste of Brazil in Eilat.",
+                "textHe": "הבוליניו מדהימים — פריכים מבחוץ, עסיסיים מבפנים. הזמנו מנות נוספות כי פשוט לא יכולנו להפסיק. טעם אמיתי של ברזיל באילת.",
+                "rating": 5,
+                "date": "March 2025",
+                "dateHe": "מרץ 2025",
+                "slug": "gal-m-the-boliniho-are-incredible-crispy-out"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "The Fresh Meat by Weight section is a hidden gem. The Sirloin we ordered was aged to perfection — deep flavor, beautiful marbling. Will order again.",
+                "name": "Tamar L.",
+                "author": "Tamar L.",
+                "authorHe": "תמר ל.",
+                "text": "The Fresh Meat by Weight section is a hidden gem. The Sirloin we ordered was aged to perfection — deep flavor, beautiful marbling. Will order again.",
+                "textHe": "מדור הבשר הטרי לפי משקל הוא אבן חן נסתרת. הסירלוין שהזמנו היה מיושן לשלמות — טעם עמוק, שיוש יפהפה. נזמין שוב.",
+                "rating": 5,
+                "date": "January 2025",
+                "dateHe": "ינואר 2025",
+                "slug": "tamar-l-the-fresh-meat-by-weight-section-is-a-hi"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "The service here is on another level. Every detail was attended to — from the moment we walked in to the last bite. This is what hospitality looks like.",
+                "name": "Nimrod C.",
+                "author": "Nimrod C.",
+                "authorHe": "נמרוד צ.",
+                "text": "The service here is on another level. Every detail was attended to — from the moment we walked in to the last bite. This is what hospitality looks like.",
+                "textHe": "השירות כאן הוא ברמה אחרת. כל פרט קיבל תשומת לב — מהרגע שנכנסנו עד הביס האחרון. כך נראה אירוח אמיתי.",
+                "rating": 5,
+                "date": "October 2024",
+                "dateHe": "אוקטובר 2024",
+                "slug": "nimrod-c-the-service-here-is-on-another-level-ev"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            },
+            {
+              "data": {
+                "quote": "Came with high expectations and left with them exceeded. The Maminha was tender and flavorful, the sides were generous, and the desserts were divine.",
+                "name": "Shira E.",
+                "author": "Shira E.",
+                "authorHe": "שירה א.",
+                "text": "Came with high expectations and left with them exceeded. The Maminha was tender and flavorful, the sides were generous, and the desserts were divine.",
+                "textHe": "הגעתי עם ציפיות גבוהות ויצאתי כשהן עלו על הציפיות. המאמיניה הייתה רכה וטעימה, התוספות נדיבות, והקינוחים היו אלוהיים.",
+                "rating": 5,
+                "date": "February 2025",
+                "dateHe": "פברואר 2025",
+                "slug": "shira-e-came-with-high-expectations-and-left-wit"
+              },
+              "sourceProvenance": {
+                "sourceUrl": "client/src/components/ReviewsSection.tsx",
+                "domPath": "REVIEWS[]"
+              },
+              "confidence": 0.9
+            }
+          ]
+        }
+      ],
+      "unmappedStructured": [],
+      "warnings": [
+        "scanned data files (client/src/components/ReviewsSection.tsx) → testimonial=20"
+      ],
+      "metrics": {
+        "pagesAnalyzed": 10,
+        "totalEntriesExtracted": 20,
+        "averageConfidence": 0.9,
+        "highConfidenceCount": 20,
+        "lowConfidenceCount": 0
+      }
+    }
+  },
+  "label": "unlabeled",
+  "promptVersion": "detect-v2+digest-v2"
+}
